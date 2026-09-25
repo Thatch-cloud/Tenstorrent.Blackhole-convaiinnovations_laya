@@ -1,0 +1,102 @@
+{
+  "action_probability_limitation": "Zero observed probability drift on saturated examples does not establish action quality",
+  "all_integrity_guards_verified": true,
+  "bf16_promotion_approved": false,
+  "cases": [
+    {
+      "action_logit_max_abs": 14.3818359375,
+      "action_probability_max_abs": 0.0,
+      "decoded_answers_exact": false,
+      "decoded_error_by_field_group": {
+        "action_probability": 0.0,
+        "calibrated_option_probabilities": 0.01040000000000002,
+        "confidence_fields": 0.0046000000000000485,
+        "noul_probability": 0.0023999999999999577,
+        "score": 0.01639999999999997
+      },
+      "decoded_numeric_max": 0.01639999999999997,
+      "discrete_and_order_exact": true,
+      "id": "mixed-question-widths",
+      "valid_logit_max_abs": 0.06393694877624512
+    },
+    {
+      "action_logit_max_abs": 18.16455078125,
+      "action_probability_max_abs": 0.0,
+      "decoded_answers_exact": false,
+      "decoded_error_by_field_group": {
+        "action_probability": 0.0,
+        "calibrated_option_probabilities": 0.004799999999999971,
+        "confidence_fields": 0.007800000000000029,
+        "noul_probability": 9.999999999998899e-05,
+        "score": 0.008700000000000041
+      },
+      "decoded_numeric_max": 0.008700000000000041,
+      "discrete_and_order_exact": true,
+      "id": "mixed-state-lengths",
+      "valid_logit_max_abs": 0.026815176010131836
+    },
+    {
+      "action_logit_max_abs": 0.8369140625,
+      "action_probability_max_abs": 0.0,
+      "decoded_answers_exact": true,
+      "decoded_error_by_field_group": {
+        "action_probability": 0.0,
+        "calibrated_option_probabilities": 0.0,
+        "confidence_fields": 0.0
+      },
+      "decoded_numeric_max": 0.0,
+      "discrete_and_order_exact": true,
+      "id": "single-option",
+      "valid_logit_max_abs": 0.0017310380935668945
+    },
+    {
+      "action_logit_max_abs": 18.6572265625,
+      "action_probability_max_abs": 0.0,
+      "decoded_answers_exact": false,
+      "decoded_error_by_field_group": {
+        "action_probability": 0.0,
+        "confidence_fields": 0.0023999999999999577,
+        "noul_probability": 0.0023999999999999577
+      },
+      "decoded_numeric_max": 0.0023999999999999577,
+      "discrete_and_order_exact": true,
+      "id": "conversation-truncation",
+      "valid_logit_max_abs": 0.02124500274658203
+    },
+    {
+      "action_logit_max_abs": 0,
+      "action_probability_max_abs": 0,
+      "decoded_answers_exact": true,
+      "decoded_error_by_field_group": {
+        "confidence_fields": 0.0
+      },
+      "decoded_numeric_max": 0,
+      "discrete_and_order_exact": true,
+      "id": "empty-questions",
+      "valid_logit_max_abs": 0
+    },
+    {
+      "action_logit_max_abs": 3.99951171875,
+      "action_probability_max_abs": 0.0,
+      "decoded_answers_exact": false,
+      "decoded_error_by_field_group": {
+        "action_probability": 0.0,
+        "calibrated_option_probabilities": 0.0009000000000000119,
+        "confidence_fields": 0.0020000000000000018
+      },
+      "decoded_numeric_max": 0.0020000000000000018,
+      "discrete_and_order_exact": true,
+      "id": "option-temperature-buckets",
+      "valid_logit_max_abs": 0.04405081272125244
+    }
+  ],
+  "compiler_attempted": false,
+  "parameter_dtype_counts": {
+    "torch.bfloat16": 201,
+    "torch.float32": 4
+  },
+  "physical_acceptance": false,
+  "report_sha256": "ff6a38dc74d8d9b0503d85bb699708234a55846f9911d60a16653a40f4d40b67",
+  "schema_version": 1,
+  "status": "OBSERVED"
+}

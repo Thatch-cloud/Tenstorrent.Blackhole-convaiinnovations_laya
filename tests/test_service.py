@@ -3,6 +3,7 @@ import json
 import os
 from pathlib import Path
 import threading
+import tempfile
 import time
 import unittest
 
@@ -10,6 +11,8 @@ from jsonschema import Draft202012Validator
 
 from laya_tt.admission import AdmissionAdapter, AdmissionRejected, PreparedInput
 from laya_tt.contracts import load_schema
+from laya_tt.ledger import ExecutionJournal
+from laya_tt.worker import QueueFull
 from laya_tt.service import (
     AdmissionCapacityExceeded, DecisionService, InvalidBackendResult,
     RuntimeIdentity, ServiceNotReady,
@@ -106,6 +109,36 @@ class ServiceTests(unittest.TestCase):
         a["answers"]["same-question"]["noul"] = .4
         self.assertEqual(b["answers"]["same-question"]["noul"], 0.)
         self.assertEqual(self.calls, ["hold", "first", "second"])
+
+    def test_multiple_keys_share_tenant_budget_and_rotation_with_durable_attribution(self):
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        journal = ExecutionJournal(Path(directory.name) / "execution.sqlite")
+        service = self.service(receipt_sink=journal, worker_limits={"max_queued_per_tenant": 2})
+        held = service.submit(*self.envelope("blocker", "hold", key_id="blocker-key"))
+        self.assertTrue(self.entered.wait(1))
+        first = service.submit(*self.envelope("tenant-a", "a-one", "a-one", key_id="a-key-one"))
+        second = service.submit(*self.envelope("tenant-a", "a-two", "a-two", key_id="a-key-two"))
+        with self.assertRaises(QueueFull):
+            service.submit(*self.envelope("tenant-a", "rejected", "a-three", key_id="a-key-three"))
+        other = service.submit(*self.envelope("tenant-b", "b-one", "b-one", key_id="b-key"))
+        self.release.set()
+        for future in (held, first, second, other):
+            future.result(2)
+        self.assertTrue(service.drain(timeout=2))
+        self.assertEqual(self.calls, ["hold", "a-one", "b-one", "a-two"])
+        receipts = [json.loads(item.payload_json) for item in
+                    ExecutionJournal(journal.path).pending_receipts()]
+        completed = {(item["tenant_id"], item["key_id"], item["execution_attempt_id"])
+                     for item in receipts if item["outcome"] == "completed"}
+        self.assertEqual(completed, {("blocker", "blocker-key", "same-attempt"),
+            ("tenant-a", "a-key-one", "a-one"), ("tenant-a", "a-key-two", "a-two"),
+            ("tenant-b", "b-key", "b-one")})
+        rejected = [item for item in receipts if item["execution_attempt_id"] == "a-three"]
+        self.assertEqual(len(rejected), 1)
+        self.assertEqual(rejected[0]["outcome"], "not_started")
+        self.assertNotIn("encoded_tokens", rejected[0]["observation"])
+        self.assertEqual(journal.unresolved(), [])
 
     def test_startup_gate_and_failed_self_test(self):
         service = self.service(ready=False)

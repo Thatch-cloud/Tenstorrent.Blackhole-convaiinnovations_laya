@@ -64,3 +64,9 @@ local loading failure. The compiler matrix failure remains preserved separately.
 [Independent compiler run 36095766121](https://github.com/Thatch-cloud/Tenstorrent.Blackhole-convaiinnovations_laya/actions/runs/36095766121) passed on `ff79175`, compiling option-temperature-buckets `[3,84]` after exact loaded-state verification. Parent review verified the report, log, three compiled artifact hashes and committed harness hashes. [Combined evidence](../evidence/compiler/offline-fp32-complete-coverage.json) now covers all five reference forward graphs; the earlier failure evidence is unchanged. No TT device was exposed, no device output was compared, and physical acceptance remains false.
 
 CPU contract CI [36095760279](https://github.com/Thatch-cloud/Tenstorrent.Blackhole-convaiinnovations_laya/actions/runs/36095760279) passed on the same commit for Python 3.11 and 3.12: each ran 199 tests, 2 optional skips and 92 passing subtests, followed by isolated wheel validation.
+
+## Mixed-precision CPU observation and runtime follow-up
+
+The [explicit BF16/FP32 CPU candidate](bf16-cpu-experiment.md) passed exact state and activation-dtype checks, retaining discrete choices and order on the six fixtures. Calibrated option probabilities changed by up to 0.0104 and scores by 0.0164. Saturated action probabilities cannot validate action quality. This candidate is not promoted and has not been compiled or executed on TT.
+
+Runtime readback and unreconciled-startup protection were published in `e1a197c`; [CI run 36096388343](https://github.com/Thatch-cloud/Tenstorrent.Blackhole-convaiinnovations_laya/actions/runs/36096388343) passed. Runtime facts still require collection and production composition in Compute/Management. A local service test now verifies that multiple authenticated key fixtures share a tenant queue budget and fair rotation while durable receipts retain individual key attribution; this is not a deployed gateway test.
