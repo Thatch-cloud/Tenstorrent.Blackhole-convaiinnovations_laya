@@ -163,5 +163,120 @@ class WorkerTests(unittest.TestCase):
         self.assertEqual(peak, 1)
 
 
+    def test_success_callback_shutdown_does_not_join_its_peer_thread(self):
+        worker, release, _, future = self.blocking_worker()
+        callback_done = threading.Event()
+        outcomes = []
+        def completed(_future):
+            outcomes.append(worker.shutdown(wait=True))
+            callback_done.set()
+        future.add_done_callback(completed)
+        release.set()
+        self.assertTrue(callback_done.wait(1), "shutdown deadlocked in completion callback")
+        self.assertEqual(outcomes, [False])
+        self.assertEqual(future.result(), "hold")
+        self.assertTrue(worker.shutdown(timeout=2))
+
+    def test_expiry_callback_shutdown_retains_backend_without_joining_worker(self):
+        entered, release = threading.Event(), threading.Event()
+        def backend(payload):
+            entered.set()
+            release.wait(3)
+            return payload
+        worker = SerializedWorker(backend)
+        self.addCleanup(lambda: worker.shutdown(timeout=3))
+        self.addCleanup(release.set)
+        future = worker.submit("tenant", "attempt", "payload", deadline=time.monotonic() + .15)
+        self.assertTrue(entered.wait(1))
+        callback_done = threading.Event()
+        outcomes = []
+        def expired(_future):
+            outcomes.append(worker.shutdown(wait=True))
+            callback_done.set()
+        future.add_done_callback(expired)
+        self.assertTrue(callback_done.wait(1), "shutdown deadlocked in deadline callback")
+        self.assertEqual(outcomes, [False])
+        with self.assertRaises(DeadlineExceeded):
+            future.result()
+        self.assertFalse(worker.shutdown(timeout=.01), "backend ownership was released early")
+        release.set()
+        self.assertTrue(worker.shutdown(timeout=2))
+
+
+    def test_cancel_callback_runs_without_worker_lock_and_nested_drain_returns_false(self):
+        worker, release, calls, _ = self.blocking_worker()
+        future = worker.submit("a", "cancel", "must-not-execute")
+        observed = []
+        def cancelled(_future):
+            other_done = threading.Event()
+            def inspect():
+                worker.shutdown(wait=False)
+                other_done.set()
+            thread = threading.Thread(target=inspect, daemon=True)
+            thread.start()
+            observed.append(other_done.wait(.5))
+            observed.append(worker.shutdown(wait=True))
+        future.add_done_callback(cancelled)
+        self.assertTrue(worker.cancel("a", "cancel"))
+        self.assertEqual(observed, [True, False])
+        release.set()
+        self.assertTrue(worker.shutdown(timeout=2))
+        self.assertEqual(calls, ["hold"])
+
+    def test_shutdown_detaches_queued_work_before_reentrant_cancellation_callbacks(self):
+        worker, release, calls, _ = self.blocking_worker()
+        first = worker.submit("a", "1", "must-not-execute-1")
+        second = worker.submit("b", "2", "must-not-execute-2")
+        observed = []
+        def cancelled(_future):
+            release.set()
+            observed.append(worker.shutdown(wait=True, cancel_queued=True))
+        first.add_done_callback(cancelled)
+        self.assertTrue(worker.shutdown(cancel_queued=True, timeout=2))
+        self.assertEqual(observed, [False])
+        self.assertTrue(first.cancelled())
+        self.assertTrue(second.cancelled())
+        self.assertEqual(calls, ["hold"])
+
+    def test_expiry_callback_does_not_hold_worker_lock(self):
+        worker, release, _, _ = self.blocking_worker()
+        future = worker.submit("a", "expires", "unused", deadline=time.monotonic() + .15)
+        callback_done = threading.Event()
+        observed = []
+        def expired(_future):
+            other_done = threading.Event()
+            def inspect():
+                worker.shutdown(wait=False)
+                other_done.set()
+            thread = threading.Thread(target=inspect, daemon=True)
+            thread.start()
+            observed.append(other_done.wait(.5))
+            callback_done.set()
+        future.add_done_callback(expired)
+        self.assertTrue(callback_done.wait(1))
+        self.assertEqual(observed, [True])
+        release.set()
+        self.assertTrue(worker.shutdown(timeout=2))
+
+    def test_external_drain_waits_for_cancellation_callback_to_finish(self):
+        worker, release, _, _ = self.blocking_worker()
+        future = worker.submit("a", "cancel", "unused")
+        callback_entered, callback_release = threading.Event(), threading.Event()
+        self.addCleanup(callback_release.set)
+        def cancelled(_future):
+            callback_entered.set()
+            callback_release.wait(2)
+        future.add_done_callback(cancelled)
+        cancelling = threading.Thread(target=lambda: worker.cancel("a", "cancel"), daemon=True)
+        cancelling.start()
+        self.assertTrue(callback_entered.wait(1))
+        release.set()
+        self.assertFalse(worker.shutdown(timeout=.03))
+        callback_release.set()
+        cancelling.join(1)
+        self.assertFalse(cancelling.is_alive())
+        self.assertTrue(worker.shutdown(timeout=2))
+
+
 if __name__ == "__main__":
     unittest.main()

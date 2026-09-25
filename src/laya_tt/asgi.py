@@ -8,7 +8,7 @@ from concurrent.futures import CancelledError as FutureCancelled
 import json
 import threading
 
-from .admission import AdmissionRejected
+from .admission import AdmissionRejected, InvalidRequest, PreparationFailed, RequestTooLarge
 from .service import AdmissionCapacityExceeded, ServiceNotReady
 from .worker import DeadlineExceeded, DuplicateRequest, QueueFull, WorkerClosed
 
@@ -122,6 +122,12 @@ class DecisionASGI:
     def _failure(exc):
         if isinstance(exc, (AdmissionCapacityExceeded, QueueFull)):
             return 429, "capacity_exceeded"
+        if isinstance(exc, RequestTooLarge):
+            return 413, "request_too_large"
+        if isinstance(exc, InvalidRequest):
+            return 400, "invalid_request"
+        if isinstance(exc, PreparationFailed):
+            return 500, "preparation_failed"
         if isinstance(exc, AdmissionRejected):
             return 403, "invalid_admission"
         if isinstance(exc, DeadlineExceeded):

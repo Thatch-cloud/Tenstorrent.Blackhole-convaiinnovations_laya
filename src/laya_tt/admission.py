@@ -19,6 +19,23 @@ class AdmissionRejected(ValueError):
     """Safe rejection reason without request, credential, or verifier details."""
 
 
+class InvalidRequest(AdmissionRejected):
+    """Public request syntax or semantics are invalid (HTTP 400)."""
+
+
+class RequestTooLarge(InvalidRequest):
+    """Public or prepared request exceeds a size/token budget (HTTP 413)."""
+
+
+class PreparationFailed(AdmissionRejected):
+    """Trusted preparation failed internally; not a credential rejection."""
+
+
+def _size_violation(error):
+    return error.validator in {"maxLength", "maxItems", "maxProperties"} or any(
+        _size_violation(child) for child in error.context)
+
+
 def _freeze(value: Any) -> Any:
     if isinstance(value, dict):
         return MappingProxyType({key: _freeze(item) for key, item in value.items()})
@@ -31,18 +48,20 @@ def _pairs(pairs):
     result = {}
     for key, value in pairs:
         if key in result:
-            raise AdmissionRejected("duplicate JSON key")
+            raise InvalidRequest("duplicate JSON key")
         result[key] = value
     return result
 
 
 def _constant(_value):
-    raise AdmissionRejected("nonfinite JSON number")
+    raise InvalidRequest("nonfinite JSON number")
 
 
 def _parse_request(raw: bytes) -> dict:
-    if type(raw) is not bytes or len(raw) > 2 * 1024 * 1024:
-        raise AdmissionRejected("request byte limit exceeded or invalid bytes")
+    if type(raw) is not bytes:
+        raise InvalidRequest("request must contain bytes")
+    if len(raw) > 2 * 1024 * 1024:
+        raise RequestTooLarge("request byte limit exceeded")
     try:
         text = raw.decode("utf-8", errors="strict")
         # Bound nesting before invoking the recursive JSON decoder. Braces
@@ -62,7 +81,7 @@ def _parse_request(raw: bytes) -> dict:
             elif char in "[{":
                 depth += 1
                 if depth > 32:
-                    raise AdmissionRejected("request nesting limit exceeded")
+                    raise RequestTooLarge("request nesting limit exceeded")
             elif char in "]}":
                 depth -= 1
         parsed = json.loads(text, object_pairs_hook=_pairs, parse_constant=_constant)
@@ -70,18 +89,18 @@ def _parse_request(raw: bytes) -> dict:
         while stack:
             item = stack.pop()
             if isinstance(item, float) and not math.isfinite(item):
-                raise AdmissionRejected("nonfinite JSON number")
+                raise InvalidRequest("nonfinite JSON number")
             if isinstance(item, dict):
                 stack.extend(item.values())
             elif isinstance(item, list):
                 stack.extend(item)
         if not isinstance(parsed, dict):
-            raise AdmissionRejected("request must be an object")
+            raise InvalidRequest("request must be an object")
         return parsed
     except (UnicodeError, json.JSONDecodeError, RecursionError, ValueError) as exc:
         if isinstance(exc, AdmissionRejected):
             raise
-        raise AdmissionRejected("invalid request JSON") from None
+        raise InvalidRequest("invalid request JSON") from None
 
 
 @dataclass(frozen=True)
@@ -160,8 +179,10 @@ class AdmissionAdapter:
         request = _parse_request(raw_request)
         try:
             self._request_validator.validate(request)
-        except ValidationError:
-            raise AdmissionRejected("request does not match decision schema") from None
+        except ValidationError as exc:
+            if _size_violation(exc):
+                raise RequestTooLarge("request exceeds schema size limits") from None
+            raise InvalidRequest("request does not match decision schema") from None
         if type(envelope) is not bytes:
             raise AdmissionRejected("opaque authenticated grant bytes required")
         try:
@@ -181,17 +202,27 @@ class AdmissionAdapter:
             raise AdmissionRejected("grant model mismatch")
         deadline = self._mono() + self._time_budget(context)
         frozen_request, frozen_context = _freeze(request), _freeze(context)
+        expected_rows = len(frozen_request["questions"])
+        if expected_rows > min(self._max_rows, context["max_question_rows"]):
+            raise RequestTooLarge("question count exceeds admission limits")
         try:
             prepared = self._prepare(frozen_request)
+        except InvalidRequest:
+            raise
+        except ValueError:
+            raise InvalidRequest("request preparation rejected input") from None
         except Exception:
-            raise AdmissionRejected("request preparation failed") from None
+            raise PreparationFailed("request preparation failed") from None
         if not isinstance(prepared, PreparedInput):
-            raise AdmissionRejected("invalid preparation result")
+            raise PreparationFailed("invalid preparation result")
         rows, tokens = prepared.question_rows, prepared.encoded_tokens
-        if (type(rows) is not int or type(tokens) is not int
-                or not 1 <= rows <= min(self._max_rows, context["max_question_rows"])
-                or not 1 <= tokens <= min(self._max_tokens, context["max_encoded_tokens"])):
-            raise AdmissionRejected("prepared request exceeds admission limits")
+        if type(rows) is not int or type(tokens) is not int or rows <= 0 or tokens <= 0:
+            raise PreparationFailed("invalid prepared request accounting")
+        if rows != expected_rows:
+            raise PreparationFailed("prepared row count differs from question count")
+        if (rows > min(self._max_rows, context["max_question_rows"])
+                or tokens > min(self._max_tokens, context["max_encoded_tokens"])):
+            raise RequestTooLarge("prepared request exceeds admission limits")
         self._time_budget(context)
         if self._mono() >= deadline:
             raise AdmissionRejected("grant expired during preparation")

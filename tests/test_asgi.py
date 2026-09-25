@@ -1,11 +1,13 @@
 import asyncio
 import base64
+import hashlib
 from concurrent.futures import Future
 import json
 import threading
+import time
 import unittest
 
-from laya_tt.admission import AdmissionRejected
+from laya_tt.admission import AdmissionAdapter, AdmissionRejected, PreparedInput
 from laya_tt.asgi import DecisionASGI, GRANT_HEADER, MAX_BODY_BYTES
 from laya_tt.worker import SerializedWorker
 
@@ -188,6 +190,86 @@ class ASGITests(unittest.IsolatedAsyncioTestCase):
         await DecisionASGI(service, body_timeout_seconds=.01)(self.scope(), incoming.get, send)
         self.assertEqual(self.error(outgoing), (408, "request_body_timeout"))
         self.assertEqual(service.calls, [])
+
+    def admission_service(self, raw, *, prepare=None, reject_grant=False):
+        service = FakeService()
+        now = int(time.time() * 1000)
+        claims = dict(schema_version="1", request_id="request", execution_attempt_id="attempt",
+            usage_event_id="usage", tenant_id="verified-tenant", key_id="key",
+            runtime_generation="generation", policy_revision="policy", reservation_id="reservation",
+            model="laya-english", checkpoint_revision="a" * 40,
+            issued_at_unix_ms=now-100, deadline_unix_ms=now+5000,
+            max_question_rows=1, max_encoded_tokens=10,
+            request_sha256=hashlib.sha256(raw).hexdigest())
+        service.verifier_calls = 0
+        service.reservation_calls = 0
+        def verify(envelope):
+            service.verifier_calls += 1
+            if reject_grant or envelope != b"opaque-platform-grant":
+                raise PermissionError("secret credential detail")
+            return claims
+        def consume(*args):
+            service.reservation_calls += 1
+            return True
+        adapter = AdmissionAdapter(verify_grant=verify,
+            prepare=prepare or (lambda request: PreparedInput(1, 5, request)),
+            consume_reservation=consume, checkpoint_revision="a" * 40,
+            runtime_generation="generation", policy_revision="policy")
+        def submit(request, envelope):
+            adapter.admit(request, envelope)
+            return service.future
+        service.submit = submit
+        return service
+
+    def native_request(self):
+        return {"model": "laya-english", "state": "state", "questions": {
+            "q": {"type": "noul", "instructions": "Evaluate"}}}
+
+    async def test_actual_admission_malformed_json_and_schema_are_400(self):
+        for raw in (b'{broken', b'{"model":"laya-english"}',
+                    json.dumps(dict(self.native_request(), tenant_id="spoof")).encode()):
+            service = self.admission_service(raw)
+            response = await self.invoke(DecisionASGI(service), events=[{"type": "http.request", "body": raw}])
+            self.assertEqual(self.error(response), (400, "invalid_request"))
+            self.assertEqual(service.verifier_calls, 0)
+            self.assertEqual(service.reservation_calls, 0)
+
+    async def test_actual_admission_schema_and_prepared_overflow_are_413(self):
+        request = self.native_request()
+        request["questions"]["q"]["instructions"] = "x" * 4097
+        raw = json.dumps(request).encode()
+        service = self.admission_service(raw)
+        response = await self.invoke(DecisionASGI(service), events=[{"type": "http.request", "body": raw}])
+        self.assertEqual(self.error(response), (413, "request_too_large"))
+        self.assertEqual(service.verifier_calls, 0)
+        raw = json.dumps(self.native_request()).encode()
+        service = self.admission_service(raw, prepare=lambda request: PreparedInput(1, 11, request))
+        response = await self.invoke(DecisionASGI(service), events=[{"type": "http.request", "body": raw}])
+        self.assertEqual(self.error(response), (413, "request_too_large"))
+        self.assertEqual(service.verifier_calls, 1)
+        self.assertEqual(service.reservation_calls, 0)
+
+    async def test_actual_admission_grant_rejection_remains_403(self):
+        raw = json.dumps(self.native_request()).encode()
+        service = self.admission_service(raw, reject_grant=True)
+        response = await self.invoke(DecisionASGI(service), events=[{"type": "http.request", "body": raw}])
+        self.assertEqual(self.error(response), (403, "invalid_admission"))
+        self.assertNotIn(b"secret", response[1]["body"])
+        self.assertEqual(service.verifier_calls, 1)
+        self.assertEqual(service.reservation_calls, 0)
+
+    async def test_native_truncation_413_and_internal_preparation_failure_500(self):
+        from laya_tt.cpu_backend import InputWouldTruncate
+        raw = json.dumps(self.native_request()).encode()
+        for failure, expected in ((InputWouldTruncate("sensitive option"), (413, "request_too_large")),
+                                  (RuntimeError("sensitive implementation"), (500, "preparation_failed"))):
+            def prepare(request, failure=failure):
+                raise failure
+            service = self.admission_service(raw, prepare=prepare)
+            response = await self.invoke(DecisionASGI(service), events=[{"type": "http.request", "body": raw}])
+            self.assertEqual(self.error(response), expected)
+            self.assertNotIn(b"sensitive", response[1]["body"])
+            self.assertEqual(service.reservation_calls, 0)
 
 
 if __name__ == "__main__":

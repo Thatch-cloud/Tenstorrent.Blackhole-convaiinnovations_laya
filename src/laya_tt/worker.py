@@ -62,6 +62,8 @@ class SerializedWorker:
         self._pending: dict[tuple[str, str], _Work] = {}
         self._active: _Work | None = None
         self._closed = False
+        self._cancellations = 0
+        self._callback_context = threading.local()
         self._thread = threading.Thread(target=self._run, name="laya-worker", daemon=True)
         self._expiry = threading.Thread(target=self._expire, name="laya-deadlines", daemon=True)
         self._thread.start()
@@ -135,7 +137,24 @@ class SerializedWorker:
         """Cancel delivery; an executing backend is not preempted or released."""
         with self._cv:
             work = self._pending.get((tenant_id, request_id))
-            return work.future.cancel() if work is not None else False
+            if work is None:
+                return False
+            future = work.future
+            self._cancellations += 1
+        return self._cancel_delivery(future)
+
+    def _cancel_delivery(self, future: Future) -> bool:
+        # Caller reserved one cancellation count under _cv. Future callbacks
+        # run synchronously and can reenter lifecycle methods, so never hold _cv.
+        depth = getattr(self._callback_context, "cancelling", 0)
+        self._callback_context.cancelling = depth + 1
+        try:
+            return future.cancel()
+        finally:
+            self._callback_context.cancelling = depth
+            with self._cv:
+                self._cancellations -= 1
+                self._cv.notify_all()
 
     @staticmethod
     def _finish(future: Future, *, result: Any = None,
@@ -182,39 +201,64 @@ class SerializedWorker:
                     self._cv.notify_all()
 
     def _expire(self) -> None:
-        with self._cv:
-            while True:
+        while True:
+            with self._cv:
                 if self._closed and not self._pending:
                     return
                 now = time.monotonic()
+                expired = []
                 remaining = []
                 for work in list(self._pending.values()):
                     if work.future.done() or work.deadline is None:
                         continue
                     if work.deadline <= now:
-                        self._finish(work.future, error=DeadlineExceeded("request deadline elapsed"))
+                        expired.append(work.future)
                     else:
                         remaining.append(work.deadline - now)
-                self._cv.wait(timeout=min(remaining) if remaining else None)
+                if not expired:
+                    # Predicate inspection and wait share the lock, so a submit,
+                    # completion or close cannot notify in a gap before waiting.
+                    self._cv.wait(timeout=min(remaining) if remaining else None)
+                    continue
+            for future in expired:
+                self._finish(future, error=DeadlineExceeded("request deadline elapsed"))
+            # Recompute pending work and deadlines after arbitrary callbacks.
 
     def shutdown(self, *, wait: bool = True, cancel_queued: bool = False,
                  timeout: float | None = None) -> bool:
         """Close admission and drain, or cancel queued work. Return true if stopped.
 
-        Timeout never kills a backend or releases its device/buffers. The caller
-        must retain the backend and allocation until a later successful drain.
+        Timeout never kills a backend or releases its device/buffers. Reentrant
+        callback shutdown closes admission but returns False; an external owner
+        must perform the final successful drain after callbacks/backend return.
         """
+        end = None if timeout is None else time.monotonic() + max(0, timeout)
+        cancellations = []
         with self._cv:
             self._closed = True
             if cancel_queued:
                 for queue in list(self._queues.values()):
                     for work in list(queue):
-                        work.future.cancel()
+                        cancellations.append(work.future)
+                        self._remove_queued(work)
+                self._cancellations += len(cancellations)
             self._cv.notify_all()
+        # Removal above is atomic with dequeue: supposedly cancelled queued
+        # payloads cannot start while callbacks run outside the worker lock.
+        for future in cancellations:
+            self._cancel_delivery(future)
+        if (threading.current_thread() in (self._thread, self._expiry)
+                or getattr(self._callback_context, "cancelling", 0)):
+            return False
         if wait:
-            end = None if timeout is None else time.monotonic() + max(0, timeout)
             for thread in (self._thread, self._expiry):
-                if thread is threading.current_thread():
-                    continue
                 thread.join(None if end is None else max(0, end - time.monotonic()))
-        return not self._thread.is_alive() and not self._expiry.is_alive()
+            with self._cv:
+                while self._cancellations:
+                    remaining = None if end is None else end - time.monotonic()
+                    if remaining is not None and remaining <= 0:
+                        break
+                    self._cv.wait(remaining)
+        with self._cv:
+            return (not self._thread.is_alive() and not self._expiry.is_alive()
+                    and not self._cancellations)

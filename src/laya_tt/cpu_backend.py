@@ -11,11 +11,11 @@ from types import MappingProxyType
 from typing import Any
 import warnings
 
-from .admission import PreparedInput
+from .admission import PreparedInput, RequestTooLarge
 from .reference import checkpoint_files, validate_manifest
 
 
-class InputWouldTruncate(ValueError):
+class InputWouldTruncate(RequestTooLarge):
     """The upstream encoder would silently discard request content."""
 
 

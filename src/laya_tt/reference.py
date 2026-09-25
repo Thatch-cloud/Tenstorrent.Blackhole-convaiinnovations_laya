@@ -76,6 +76,12 @@ def validate_answers(result, questions):
             raise ValueError("Invalid action probability")
         if kind in ("choice", "score"):
             probs = answer["probabilities"]
+            criteria = list(question["criteria"])
+            expected_keys = criteria if kind == "choice" else [str(i) for i in range(len(criteria))]
+            if list(probs) != expected_keys:
+                raise ValueError("Probability options differ from requested criteria or order")
+            if kind == "score" and answer["legend"] != dict(zip(expected_keys, criteria)):
+                raise ValueError("Score legend differs from requested criteria")
             if not probs or any(not 0 <= p <= 1 for p in probs.values()) or abs(sum(probs.values()) - 1) > len(probs) * 0.000051:
                 raise ValueError("Invalid probability distribution")
             if kind == "choice" and answer["choice"] not in probs:

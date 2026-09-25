@@ -58,14 +58,14 @@ def answer():
                            "answer_confidence":1.0,"action":{"act_probability":0.5}}}}
 
 def test_single_option_semantics():
-    validate_answers(answer(), {"q":{"type":"choice"}})
+    validate_answers(answer(), {"q":{"type":"choice", "criteria":["sole"]}})
 
 @pytest.mark.parametrize("field,value", [("answer_confidence", float("nan")), ("choice","absent"), ("probabilities",{"sole":0.2})])
 def test_rejects_invalid_answer(field, value):
     result = answer()
     result["answers"]["q"][field] = value
     with pytest.raises(ValueError):
-        validate_answers(result, {"q":{"type":"choice"}})
+        validate_answers(result, {"q":{"type":"choice", "criteria":["sole"]}})
 
 def test_case_inventory_covers_required_shapes():
     root = Path(__file__).resolve().parents[1]
@@ -73,3 +73,31 @@ def test_case_inventory_covers_required_shapes():
     assert {q["type"] for case in cases for q in case["questions"].values()} == {"choice","score","noul"}
     assert any("states" in case for case in cases)
     assert any(len(case["questions"]) == 1 and next(iter(case["questions"].values()))["type"] == "choice" for case in cases)
+
+
+def test_rejects_other_request_options_even_when_question_id_matches():
+    with pytest.raises(ValueError, match="requested criteria"):
+        validate_answers(answer(), {"q":{"type":"choice", "criteria":["another-tenant-option"]}})
+
+
+def test_rejects_reordered_probability_options():
+    result = answer()
+    result["answers"]["q"].update(choice="first", probabilities={"second":0.2,"first":0.8})
+    with pytest.raises(ValueError, match="order"):
+        validate_answers(result, {"q":{"type":"choice", "criteria":["first","second"]}})
+
+
+def test_score_legend_is_bound_to_request():
+    result = {"answers":{"q":{"type":"score", "score":0.5,
+        "probabilities":{"0":0.5,"1":0.5}, "legend":{"0":"Wrong","1":"High"},
+        "answer_confidence":0.5, "action":{"act_probability":0.5}}}}
+    with pytest.raises(ValueError, match="legend"):
+        validate_answers(result, {"q":{"type":"score", "criteria":["Low","High"]}})
+
+
+def test_all_recorded_answers_match_their_actual_request_criteria():
+    root = Path(__file__).resolve().parents[1]/"tests/fixtures/cpu-reference"
+    report=json.loads((root/"reference.json").read_text(encoding="utf-8"))
+    for case in report["cases"]:
+        for result in json.loads((root/case["answers"]["file"]).read_text(encoding="utf-8")):
+            validate_answers(result, case["input"]["questions"])

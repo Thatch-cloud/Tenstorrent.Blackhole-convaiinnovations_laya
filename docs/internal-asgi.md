@@ -42,9 +42,14 @@ abrupt loop/process termination is not successful model/device teardown.
 
 All error bodies have the form `{"error":{"code":"..."}}`. No raw verifier,
 backend exception, prompt, credential or stack trace is returned. Major statuses:
-400 malformed transport, 403 invalid admission, 408 body timeout, 409 duplicate
-request, 413 oversized body, 415 unsupported media type, 429 capacity exhausted,
-503 unavailable/cancelled, 504 execution deadline, 500 execution failure. Responses
+400 malformed transport/public JSON/schema or invalid input semantics, 403 rejected
+trusted admission/grant, 408 body timeout, 409 duplicate request, 413 oversized body,
+schema size limit or prepared token/row overflow, 415 unsupported media type,
+429 capacity exhausted, 503 unavailable/cancelled, 504 execution deadline,
+500 internal preparation/execution failure. Native input that would be truncated
+is rejected with 413. Typed public-request and preparation errors remain subclasses
+of `AdmissionRejected` for existing callers, but transport checks these categories
+before the generic grant rejection. Responses
 carry `Cache-Control: no-store`. Readiness probes require no grant inside this
 private seam; deployment must not publish them or the decision route by default.
 

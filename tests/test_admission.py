@@ -177,6 +177,23 @@ class AdmissionTests(unittest.TestCase):
             with self.subTest(callback=consume), self.assertRaises(AdmissionRejected):
                 self.admit(consume_reservation=consume)
 
+    def test_provider_row_accounting_mismatch_rejected_before_ledger(self):
+        from laya_tt.admission import PreparationFailed
+        with self.assertRaises(PreparationFailed):
+            self.admit(prepare=lambda request: PreparedInput(2, 37, b"payload"))
+        self.assertEqual(self.consumed, [])
+
+    def test_question_count_over_grant_rejected_before_preparation(self):
+        from laya_tt.admission import RequestTooLarge
+        self.request["questions"]["second"] = dict(self.request["questions"]["q"])
+        self.raw = json.dumps(self.request).encode()
+        self.claims["request_sha256"] = hashlib.sha256(self.raw).hexdigest()
+        self.claims["max_question_rows"] = 1
+        with self.assertRaises(RequestTooLarge):
+            self.admit()
+        self.assertEqual(self.prepared, [])
+        self.assertEqual(self.consumed, [])
+
 
 if __name__ == "__main__":
     unittest.main()
