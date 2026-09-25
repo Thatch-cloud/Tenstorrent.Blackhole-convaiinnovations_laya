@@ -1,0 +1,283 @@
+{
+  "cases": [
+    {
+      "artifacts": {
+        "mixed-question-widths-000.ttnn": {
+          "bytes": 2673968,
+          "file": "artifacts/compiler/offline-matrix-fp32-v1/mixed-question-widths-000/compiled/mixed-question-widths-000.ttnn",
+          "sha256": "47cd3297266d7f723a07eb149122e4acc4cb25bcd939c9bafa378079699dd8ec"
+        },
+        "mixed-question-widths-000_ttir.mlir": {
+          "bytes": 538368,
+          "file": "artifacts/compiler/offline-matrix-fp32-v1/mixed-question-widths-000/compiled/mixed-question-widths-000_ttir.mlir",
+          "sha256": "438a2f176fdd6dcfb475245d3008a559dac1bde31c7596d5610dc338af33b590"
+        },
+        "mixed-question-widths-000_ttnn.mlir": {
+          "bytes": 712985,
+          "file": "artifacts/compiler/offline-matrix-fp32-v1/mixed-question-widths-000/compiled/mixed-question-widths-000_ttnn.mlir",
+          "sha256": "d1574aa1c1b28b92c1b2f73a93f636582ab4af8eaa41bd558f448666dba20983"
+        }
+      },
+      "call": 0,
+      "case": "mixed-question-widths",
+      "input_shapes": {
+        "attention_mask": [
+          4,
+          43
+        ],
+        "input_ids": [
+          4,
+          43
+        ],
+        "marker_mask": [
+          4,
+          3
+        ],
+        "marker_pos": [
+          4,
+          3
+        ],
+        "qtype": [
+          4
+        ]
+      },
+      "log": "artifacts/compiler/offline-matrix-fp32-v1/mixed-question-widths-000.log",
+      "log_sha256": "8a301c430acecf1837b1681c33d5fa4c0ecbe19afecf6ba2cc3fbc4d626a6b69",
+      "report": "artifacts/compiler/offline-matrix-fp32-v1/mixed-question-widths-000/report.json",
+      "report_sha256": "7671212cdb0cc98b5fc2376eecd9ad5fc5b99e646be75d2625856f70976d1589",
+      "retained_log": "evidence/compiler/offline-fp32-matrix/mixed-question-widths-000.log",
+      "retained_report": "evidence/compiler/offline-fp32-matrix/mixed-question-widths-000.report.json",
+      "status": "COMPILED"
+    },
+    {
+      "artifacts": {
+        "mixed-state-lengths-000.ttnn": {
+          "bytes": 2692544,
+          "file": "artifacts/compiler/offline-matrix-fp32-v1/mixed-state-lengths-000/compiled/mixed-state-lengths-000.ttnn",
+          "sha256": "ea8460ee181d10a89d5a07b447cf6cc427a6a1556e58476abdc216bafce6ef0b"
+        },
+        "mixed-state-lengths-000_ttir.mlir": {
+          "bytes": 538660,
+          "file": "artifacts/compiler/offline-matrix-fp32-v1/mixed-state-lengths-000/compiled/mixed-state-lengths-000_ttir.mlir",
+          "sha256": "f8416dd79c6c9165e65de206d9cb6be3bdd00f35f599a2275d630ab206e396a1"
+        },
+        "mixed-state-lengths-000_ttnn.mlir": {
+          "bytes": 723745,
+          "file": "artifacts/compiler/offline-matrix-fp32-v1/mixed-state-lengths-000/compiled/mixed-state-lengths-000_ttnn.mlir",
+          "sha256": "0942e212ed05cf327a9414294c1061ac5ba9863c9ea62af2d6adfc9aa9aef19b"
+        }
+      },
+      "call": 0,
+      "case": "mixed-state-lengths",
+      "input_shapes": {
+        "attention_mask": [
+          8,
+          56
+        ],
+        "input_ids": [
+          8,
+          56
+        ],
+        "marker_mask": [
+          8,
+          3
+        ],
+        "marker_pos": [
+          8,
+          3
+        ],
+        "qtype": [
+          8
+        ]
+      },
+      "log": "artifacts/compiler/offline-matrix-fp32-v1/mixed-state-lengths-000.log",
+      "log_sha256": "588417d1552ea338ce0c673a79c5011ed6f54a01a785c3d166de44bc152e5ce6",
+      "report": "artifacts/compiler/offline-matrix-fp32-v1/mixed-state-lengths-000/report.json",
+      "report_sha256": "c924fd80ae0ef50da20d7c061894f9f1250ffa12b56d5127b445cefb310ec986",
+      "retained_log": "evidence/compiler/offline-fp32-matrix/mixed-state-lengths-000.log",
+      "retained_report": "evidence/compiler/offline-fp32-matrix/mixed-state-lengths-000.report.json",
+      "status": "COMPILED"
+    },
+    {
+      "artifacts": {
+        "single-option-000.ttnn": {
+          "bytes": 2505256,
+          "file": "artifacts/compiler/offline-single-option-v3/compiled/single-option-000.ttnn",
+          "sha256": "e49513c037384500a495b232fb93eb189eee03b76630ab0e01c12a9b4a88d07c"
+        },
+        "single-option-000_ttir.mlir": {
+          "bytes": 529745,
+          "file": "artifacts/compiler/offline-single-option-v3/compiled/single-option-000_ttir.mlir",
+          "sha256": "9b80aabdda3ce0a8a6986167a0f058a2508ef6db304a7524d7bb52d1f2b85d08"
+        },
+        "single-option-000_ttnn.mlir": {
+          "bytes": 673834,
+          "file": "artifacts/compiler/offline-single-option-v3/compiled/single-option-000_ttnn.mlir",
+          "sha256": "b48d38c5bafa0bdc327accccae6eae48f648fe8bf9bad63b4d8058605d603408"
+        }
+      },
+      "call": 0,
+      "case": "single-option",
+      "input_shapes": {
+        "attention_mask": [
+          1,
+          24
+        ],
+        "input_ids": [
+          1,
+          24
+        ],
+        "marker_mask": [
+          1,
+          1
+        ],
+        "marker_pos": [
+          1,
+          1
+        ],
+        "qtype": [
+          1
+        ]
+      },
+      "log": "artifacts/compiler/offline-single-option-v3.log",
+      "log_sha256": "b66334ff69dee0408b71751157921c7749abe5fe256dda5f288b07849035a72e",
+      "report": "artifacts/compiler/offline-single-option-v3/report.json",
+      "report_sha256": "14b25c2d799cf4dfc68fc0d91a5618a40bd8dd0e460fc46a142d04efcaf7509f",
+      "retained_log": "evidence/compiler/offline-fp32-matrix/single-option-000.log",
+      "retained_report": "evidence/compiler/offline-fp32-matrix/single-option-000.report.json",
+      "status": "COMPILED"
+    },
+    {
+      "artifacts": {
+        "conversation-truncation-000.ttnn": {
+          "bytes": 5692992,
+          "file": "artifacts/compiler/offline-matrix-fp32-v1/conversation-truncation-000/compiled/conversation-truncation-000.ttnn",
+          "sha256": "f1182127ba394865babcddf9cd95254618500a8f7d4168b0e093d9c468c11e0f"
+        },
+        "conversation-truncation-000_ttir.mlir": {
+          "bytes": 566457,
+          "file": "artifacts/compiler/offline-matrix-fp32-v1/conversation-truncation-000/compiled/conversation-truncation-000_ttir.mlir",
+          "sha256": "5e8b44a54f8aa23f987bbf74708c0b87d4147855c192a394ef03d13454b51e96"
+        },
+        "conversation-truncation-000_ttnn.mlir": {
+          "bytes": 2785792,
+          "file": "artifacts/compiler/offline-matrix-fp32-v1/conversation-truncation-000/compiled/conversation-truncation-000_ttnn.mlir",
+          "sha256": "100b5a29b25c2e7a00882325d71d2d81df7c284683017337d50cee6f14b08667"
+        }
+      },
+      "call": 0,
+      "case": "conversation-truncation",
+      "input_shapes": {
+        "attention_mask": [
+          1,
+          512
+        ],
+        "input_ids": [
+          1,
+          512
+        ],
+        "marker_mask": [
+          1,
+          2
+        ],
+        "marker_pos": [
+          1,
+          2
+        ],
+        "qtype": [
+          1
+        ]
+      },
+      "log": "artifacts/compiler/offline-matrix-fp32-v1/conversation-truncation-000.log",
+      "log_sha256": "b262b4983762079d5db36288a69d1381c91d8c3ad939f333515ccbdddadba25b",
+      "report": "artifacts/compiler/offline-matrix-fp32-v1/conversation-truncation-000/report.json",
+      "report_sha256": "db00cf1b4a99f512d4fadc6762a455d4c854063846b13ac23c1d727bf15dd18c",
+      "retained_log": "evidence/compiler/offline-fp32-matrix/conversation-truncation-000.log",
+      "retained_report": "evidence/compiler/offline-fp32-matrix/conversation-truncation-000.report.json",
+      "status": "COMPILED"
+    },
+    {
+      "artifacts": {
+        "option-temperature-buckets-000.ttnn": {
+          "bytes": 2738760,
+          "file": "compiled/option-temperature-buckets-000.ttnn",
+          "sha256": "e8b2f74c9887d028655928c3d521fa51d86734a75229272776cf7ae05a816adc"
+        },
+        "option-temperature-buckets-000_ttir.mlir": {
+          "bytes": 539202,
+          "file": "compiled/option-temperature-buckets-000_ttir.mlir",
+          "sha256": "bf994e8c5456c7e43ee062493b19ca7ba970d9cfaa68ccc278506feba5431b97"
+        },
+        "option-temperature-buckets-000_ttnn.mlir": {
+          "bytes": 756308,
+          "file": "compiled/option-temperature-buckets-000_ttnn.mlir",
+          "sha256": "503fca1efe65b7d4656ae1e548c6f3a665a53e557b796404876127d076d5669a"
+        }
+      },
+      "call": 0,
+      "case": "option-temperature-buckets",
+      "input_shapes": {
+        "attention_mask": [
+          3,
+          84
+        ],
+        "input_ids": [
+          3,
+          84
+        ],
+        "marker_mask": [
+          3,
+          11
+        ],
+        "marker_pos": [
+          3,
+          11
+        ],
+        "qtype": [
+          3
+        ]
+      },
+      "report_sha256": "017decaccebbb722c8b54c4db542e281a2b2492dd0b4e6d12c53dd86abc62002",
+      "retained_report": "evidence/compiler/github-option-36095766121/option-buckets/option-temperature-buckets-000/report.json",
+      "status": "COMPILED"
+    }
+  ],
+  "compiled_cases": 5,
+  "descriptor_sha256": "6028485af0f8c233185b87277f36061c2460db606f14a47bcb8284f5af5f56f3",
+  "device_arithmetic_precision": "not numerically validated; lowered IR includes BF16",
+  "independent_host_commit": "ff7917591450f2e76108d87b4df94c49ef62b845",
+  "independent_host_run": "https://github.com/Thatch-cloud/Tenstorrent.Blackhole-convaiinnovations_laya/actions/runs/36095766121",
+  "kind": "offline_source_fp32_compilation_coverage",
+  "numerical_comparison_performed": false,
+  "physical_acceptance": false,
+  "prior_loaded_state_failure_explained": false,
+  "prior_matrix_evidence": "evidence/compiler/offline-fp32-coverage.json",
+  "reference_sha256": "d1cb5aaaebdc21b5b8c6db1287811fb098659370978e9d1f50e593b329acb085",
+  "schema_version": 1,
+  "skipped": [
+    {
+      "case": "empty-questions",
+      "reason": "No tensor forward; CPU/API behavior only"
+    }
+  ],
+  "source_model_dtype": "float32",
+  "status": "ALL_REFERENCE_FORWARDS_COMPILED",
+  "toolchain_commit": "873c53c4ff84bd91112a1f43e788cfed75aaa914",
+  "verified_artifacts": {
+    "option-temperature-buckets-000.ttnn": {
+      "bytes": 2738760,
+      "file": "compiled/option-temperature-buckets-000.ttnn",
+      "sha256": "e8b2f74c9887d028655928c3d521fa51d86734a75229272776cf7ae05a816adc"
+    },
+    "option-temperature-buckets-000_ttir.mlir": {
+      "bytes": 539202,
+      "file": "compiled/option-temperature-buckets-000_ttir.mlir",
+      "sha256": "bf994e8c5456c7e43ee062493b19ca7ba970d9cfaa68ccc278506feba5431b97"
+    },
+    "option-temperature-buckets-000_ttnn.mlir": {
+      "bytes": 756308,
+      "file": "compiled/option-temperature-buckets-000_ttnn.mlir",
+      "sha256": "503fca1efe65b7d4656ae1e548c6f3a665a53e557b796404876127d076d5669a"
+    }
+  }
+}

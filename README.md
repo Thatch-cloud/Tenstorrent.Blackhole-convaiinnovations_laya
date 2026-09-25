@@ -69,9 +69,10 @@ part of this repository's default execution flow.
 Current local evidence: two fresh-process CPU captures passed the exact loaded
 checkpoint-state gate and matched all captured tensors and answers. Strict
 PyTorch export passed all five model calls against that reference. These results
-validate the CPU baseline and export experiment. Four of five FP32-source model calls
-compiled offline for the pinned P150 descriptor; the fifth failed loaded-state
-integrity before compilation. Lowered IR includes BF16. Physical TT execution and
+validate the CPU baseline and export experiment. All five FP32-source model calls
+have now compiled offline for the pinned P150 descriptor, including an independent
+host check of the option-temperature case. The earlier local loaded-state
+integrity failure remains preserved and unexplained. Lowered IR includes BF16. Physical TT execution and
 the deployed shared-service path remain outstanding.
 
 

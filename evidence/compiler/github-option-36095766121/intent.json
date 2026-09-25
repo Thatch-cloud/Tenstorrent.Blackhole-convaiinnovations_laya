@@ -1,0 +1,8 @@
+{
+  "mode": "offline-only",
+  "case": "option-temperature-buckets",
+  "attempt_limit": 1,
+  "physical_acceptance": false,
+  "python": "3.12.14",
+  "machine": "x86_64"
+}

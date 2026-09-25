@@ -8,7 +8,7 @@ acceptance. It is not a claim that the complete single-P150A service is ready.
 | Pinned English source and model | Immutable source/checkpoint lock plus SHA256 for all five checkpoint assets | Reproduce under accelerator toolchain |
 | Reproducible CPU reference | Original two CPU captures match exactly; fresh GitHub and WSL full-model checks also pass loaded-state integrity, exact inputs/answers, and fixed CPU logit tolerances | Intermittent local loaded-state failure remains unexplained; derived rotary buffers and representative application coverage remain |
 | Typed semantics and action outputs | Real fixtures cover choice, score, noul, single-option, mixed widths, batching, truncation, empty questions and temperature buckets | Physical device probability/decision parity, approved tolerances |
-| Strict full-model export | Five actual CPU graphs export and match the checked baseline with zero observed output error | Four of five FP32-source calls compiled offline (lowered IR includes BF16); fifth failed loaded-state integrity before compilation; physical TT execution remains unverified |
+| Strict full-model export | Five actual CPU graphs export and match the checked baseline with zero observed output error | All five FP32-source calls compiled offline (lowered IR includes BF16); prior local integrity failure remains unexplained; physical TT execution remains unverified |
 | Shared runtime admission | Exact-byte payload binding, injected grant verifier and durable reservation hook, bounded payload/token/work admission | Real platform credential issuer and ledger implementation |
 | Serialized shared worker | Tenant rotation, queue budgets, deadlines, cancellation and drain ownership tests | Local journal exposes interrupted work and prevents replay; device ownership recovery remains |
 | Runtime composition | Actual CPU backend through admission/worker/response path with two tenants using identical IDs | Production startup and deployment wiring |
@@ -58,3 +58,9 @@ are compared numerically and are not claimed bit-identical across these toolchai
 Three bounded local tensor-conversion/copy sweeps also matched. Neither those
 sweeps nor the successful full-model captures establish the cause of the earlier
 local loading failure. The compiler matrix failure remains preserved separately.
+
+## Complete offline reference-shape coverage
+
+[Independent compiler run 36095766121](https://github.com/Thatch-cloud/Tenstorrent.Blackhole-convaiinnovations_laya/actions/runs/36095766121) passed on `ff79175`, compiling option-temperature-buckets `[3,84]` after exact loaded-state verification. Parent review verified the report, log, three compiled artifact hashes and committed harness hashes. [Combined evidence](../evidence/compiler/offline-fp32-complete-coverage.json) now covers all five reference forward graphs; the earlier failure evidence is unchanged. No TT device was exposed, no device output was compared, and physical acceptance remains false.
+
+CPU contract CI [36095760279](https://github.com/Thatch-cloud/Tenstorrent.Blackhole-convaiinnovations_laya/actions/runs/36095760279) passed on the same commit for Python 3.11 and 3.12: each ran 199 tests, 2 optional skips and 92 passing subtests, followed by isolated wheel validation.

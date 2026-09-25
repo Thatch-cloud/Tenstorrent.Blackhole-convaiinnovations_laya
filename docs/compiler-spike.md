@@ -185,9 +185,25 @@ python scripts/run_offline_matrix.py --root "$PWD" \
 
 The output directory must be new. Run with the audited Linux nightly environment and no inherited accelerator selectors.
 
-Observed matrix result: mixed question widths `[4,43]`, mixed state lengths `[8,56]`, and conversation truncation `[1,512]` all compiled with three hash-verified artifacts each. Together with single-option `[1,24]`, this is four of five executable fixtures. The option/temperature-bucket fixture stopped before compilation because exact loaded-state verification detected a mismatch in `encoder.embeddings.tok_embeddings.weight` in the Linux process. This is an integrity failure, not an operator-lowering failure. The original failure is retained; its report predates structured mismatch-detail preservation and cannot identify the differing elements. Subsequent integrity failures retain the exception's compact report. No retry overwrote this evidence and no model repair or tolerance change was applied.
+Original local matrix result: mixed question widths `[4,43]`, mixed state lengths `[8,56]`, and conversation truncation `[1,512]` all compiled with three hash-verified artifacts each. Together with single-option `[1,24]`, this is four of five executable fixtures. The option/temperature-bucket fixture stopped before compilation because exact loaded-state verification detected a mismatch in `encoder.embeddings.tok_embeddings.weight` in the Linux process. This is an integrity failure, not an operator-lowering failure. The original failure is retained; its report predates structured mismatch-detail preservation and cannot identify the differing elements. Subsequent integrity failures retain the exception's compact report. No retry overwrote this evidence and no model repair or tolerance change was applied.
 
-The aggregate hashes and outcomes are recorded in [offline-fp32-coverage.json](../evidence/compiler/offline-fp32-coverage.json), with original reports/logs under `artifacts/compiler/offline-matrix-fp32-v1`. Matrix coverage remains incomplete pending investigation of that integrity failure.
+The aggregate hashes and outcomes are recorded in [offline-fp32-coverage.json](../evidence/compiler/offline-fp32-coverage.json), with original reports/logs under `artifacts/compiler/offline-matrix-fp32-v1`. This original matrix remains incomplete; its integrity failure is still unexplained.
+
+## Independent-host completion of offline coverage
+
+Manual workflow `.github/workflows/offline-option-compile.yml` ran once on Ubuntu
+24.04/Python 3.12.14 with no TT nodes. [Run 36095766121](https://github.com/Thatch-cloud/Tenstorrent.Blackhole-convaiinnovations_laya/actions/runs/36095766121)
+passed at `ff7917591450f2e76108d87b4df94c49ef62b845`, using the same exact compiler,
+reference and migrated descriptor. The option-temperature graph `[3,84]` passed
+loaded-state integrity and produced hash-verified TTIR, TTNN IR and binary artifacts.
+Reports, installation receipt and all three artifacts are retained under
+`evidence/compiler/github-option-36095766121/`.
+
+[Combined coverage](../evidence/compiler/offline-fp32-complete-coverage.json) records
+five of five captured forward graphs compiled across the original local and new
+independent-host experiments. This successful independent attempt neither repairs
+nor explains the earlier local failure. No device numerical comparison, dynamic
+shape coverage, memory fit, latency or hardware acceptance follows from compilation.
 
 ## Mixed-precision follow-up
 
