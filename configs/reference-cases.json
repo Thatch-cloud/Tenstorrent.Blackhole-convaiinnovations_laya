@@ -1,0 +1,160 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {
+      "id": "mixed-question-widths",
+      "state": "We were billed twice. Refund the duplicate payment today.",
+      "questions": {
+        "department": {
+          "type": "choice",
+          "instructions": "Which department handles this?",
+          "criteria": {
+            "billing": "Invoices and refunds",
+            "technical": "Software faults",
+            "other": "Other requests"
+          }
+        },
+        "urgency": {
+          "type": "score",
+          "instructions": "How urgent is the request?",
+          "criteria": [
+            "Not urgent",
+            "Soon",
+            "Critical"
+          ]
+        },
+        "refund": {
+          "type": "noul",
+          "instructions": "Is a refund requested?"
+        },
+        "only": {
+          "type": "choice",
+          "instructions": "Select the available option.",
+          "criteria": {
+            "available": "The available option"
+          }
+        }
+      }
+    },
+    {
+      "id": "mixed-state-lengths",
+      "states": [
+        "Hello.",
+        {
+          "body": "Our production service has been offline since yesterday. We need urgent technical support. No refund is requested."
+        }
+      ],
+      "questions": {
+        "department": {
+          "type": "choice",
+          "instructions": "Which department handles this?",
+          "criteria": {
+            "billing": "Invoices and refunds",
+            "technical": "Software faults",
+            "other": "Other requests"
+          }
+        },
+        "urgency": {
+          "type": "score",
+          "instructions": "How urgent is the request?",
+          "criteria": [
+            "Not urgent",
+            "Soon",
+            "Critical"
+          ]
+        },
+        "refund": {
+          "type": "noul",
+          "instructions": "Is a refund requested?"
+        },
+        "only": {
+          "type": "choice",
+          "instructions": "Select the available option.",
+          "criteria": {
+            "available": "The available option"
+          }
+        }
+      }
+    },
+    {
+      "id": "single-option",
+      "state": "Select the sole available option.",
+      "questions": {
+        "only": {
+          "type": "choice",
+          "instructions": "Select the available option.",
+          "criteria": {
+            "available": "The available option"
+          }
+        }
+      }
+    },
+    {
+      "id": "conversation-truncation",
+      "state": [
+        {
+          "role": "user",
+          "content": "Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. Old message. "
+        },
+        {
+          "role": "user",
+          "content": "Please refund the duplicate payment."
+        }
+      ],
+      "questions": {
+        "refund": {
+          "type": "noul",
+          "instructions": "Is a refund requested?"
+        }
+      }
+    },
+    {
+      "id": "empty-questions",
+      "state": "Nothing should be computed.",
+      "questions": {}
+    },
+    {
+      "id": "option-temperature-buckets",
+      "state": "The customer requests a refund.",
+      "questions": {
+        "options2": {
+          "type": "choice",
+          "instructions": "Choose the best department.",
+          "criteria": {
+            "label0": "Refunds",
+            "label1": "Department 1"
+          }
+        },
+        "options6": {
+          "type": "choice",
+          "instructions": "Choose the best department.",
+          "criteria": {
+            "label0": "Refunds",
+            "label1": "Department 1",
+            "label2": "Department 2",
+            "label3": "Department 3",
+            "label4": "Department 4",
+            "label5": "Department 5"
+          }
+        },
+        "options11": {
+          "type": "choice",
+          "instructions": "Choose the best department.",
+          "criteria": {
+            "label0": "Refunds",
+            "label1": "Department 1",
+            "label2": "Department 2",
+            "label3": "Department 3",
+            "label4": "Department 4",
+            "label5": "Department 5",
+            "label6": "Department 6",
+            "label7": "Department 7",
+            "label8": "Department 8",
+            "label9": "Department 9",
+            "label10": "Department 10"
+          }
+        }
+      }
+    }
+  ]
+}

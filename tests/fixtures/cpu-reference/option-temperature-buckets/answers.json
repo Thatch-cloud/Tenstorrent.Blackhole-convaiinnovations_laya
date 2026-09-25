@@ -1,0 +1,63 @@
+[
+  {
+    "model": "laya-rl-agent",
+    "answers": {
+      "options2": {
+        "type": "choice",
+        "choice": "label0",
+        "probabilities": {
+          "label0": 0.8044,
+          "label1": 0.1956
+        },
+        "confidence": 0.2869,
+        "answer_confidence": 0.8044,
+        "action": {
+          "act_probability": 1.0
+        }
+      },
+      "options6": {
+        "type": "choice",
+        "choice": "label0",
+        "probabilities": {
+          "label0": 0.9655,
+          "label1": 0.0262,
+          "label2": 0.006,
+          "label3": 0.0012,
+          "label4": 0.0006,
+          "label5": 0.0005
+        },
+        "confidence": 0.9015,
+        "answer_confidence": 0.9655,
+        "action": {
+          "act_probability": 1.0
+        }
+      },
+      "options11": {
+        "type": "choice",
+        "choice": "label0",
+        "probabilities": {
+          "label0": 0.9996,
+          "label1": 0.0003,
+          "label2": 0.0,
+          "label3": 0.0,
+          "label4": 0.0,
+          "label5": 0.0,
+          "label6": 0.0,
+          "label7": 0.0,
+          "label8": 0.0,
+          "label9": 0.0,
+          "label10": 0.0
+        },
+        "confidence": 0.9984,
+        "answer_confidence": 0.9996,
+        "action": {
+          "act_probability": 1.0
+        }
+      }
+    },
+    "usage": {
+      "input_tokens": 168,
+      "output_tokens": 0
+    }
+  }
+]

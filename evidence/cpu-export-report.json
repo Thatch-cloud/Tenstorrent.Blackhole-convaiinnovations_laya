@@ -1,0 +1,596 @@
+{
+  "device_execution": false,
+  "dtype": "float32",
+  "graph_executed": true,
+  "graph_execution_attempted": true,
+  "graphs": [
+    {
+      "call": 0,
+      "case": "mixed-question-widths",
+      "comparisons": {
+        "act_logits": {
+          "atol": 0.0001,
+          "elements": 8,
+          "max_abs_error": 0.0,
+          "max_relative_error": 0.0,
+          "passed": true,
+          "pcc": 1.0,
+          "rmse": 0.0,
+          "rtol": 0.0001
+        },
+        "logits": {
+          "atol": 0.0001,
+          "elements": 12,
+          "max_abs_error": 0.0,
+          "max_relative_error": 0.0,
+          "passed": true,
+          "pcc": 1.0,
+          "rmse": 0.0,
+          "rtol": 0.0001
+        },
+        "valid_logits": {
+          "atol": 0.0001,
+          "elements": 9,
+          "max_abs_error": 0.0,
+          "max_relative_error": 0.0,
+          "passed": true,
+          "pcc": 1.0,
+          "rmse": 0.0,
+          "rtol": 0.0001
+        }
+      },
+      "graph_sha256": "ee74c795c28a8badd4525d5883823752cc515150dc9f4972641bc3a39778294b",
+      "input_shapes": {
+        "attention_mask": [
+          4,
+          43
+        ],
+        "input_ids": [
+          4,
+          43
+        ],
+        "marker_mask": [
+          4,
+          3
+        ],
+        "marker_pos": [
+          4,
+          3
+        ],
+        "qtype": [
+          4
+        ]
+      },
+      "operators": {
+        "<built-in function getitem>": 142,
+        "aten.__and__.Tensor": 6,
+        "aten._assert_tensor_metadata.default": 188,
+        "aten._transformer_encoder_layer_fwd.default": 2,
+        "aten.abs.default": 1,
+        "aten.add.Tensor": 117,
+        "aten.arange.default": 9,
+        "aten.bitwise_not.default": 2,
+        "aten.cat.default": 59,
+        "aten.chunk.default": 28,
+        "aten.clamp.default": 2,
+        "aten.clamp_min.default": 1,
+        "aten.cos.default": 2,
+        "aten.detach.default": 1,
+        "aten.div.Tensor": 2,
+        "aten.dropout.default": 29,
+        "aten.embedding.default": 2,
+        "aten.expand.default": 5,
+        "aten.gather.default": 1,
+        "aten.ge.Scalar": 2,
+        "aten.gelu.default": 30,
+        "aten.index.Tensor": 2,
+        "aten.layer_norm.default": 58,
+        "aten.le.Scalar": 1,
+        "aten.linear.default": 116,
+        "aten.log.default": 2,
+        "aten.masked_fill.Scalar": 1,
+        "aten.masked_fill_.Scalar": 2,
+        "aten.matmul.default": 2,
+        "aten.mul.Tensor": 145,
+        "aten.neg.default": 57,
+        "aten.new_ones.default": 3,
+        "aten.reshape.default": 28,
+        "aten.scaled_dot_product_attention.default": 28,
+        "aten.select.int": 4,
+        "aten.sin.default": 2,
+        "aten.slice.Tensor": 112,
+        "aten.softmax.int": 1,
+        "aten.squeeze.dim": 1,
+        "aten.stack.default": 1,
+        "aten.sub.Tensor": 2,
+        "aten.sum.dim_IntList": 2,
+        "aten.to.device": 4,
+        "aten.to.dtype": 178,
+        "aten.to.dtype_layout": 6,
+        "aten.topk.default": 1,
+        "aten.transpose.int": 114,
+        "aten.unbind.int": 28,
+        "aten.unsqueeze.default": 83,
+        "aten.view.default": 28,
+        "aten.zeros_like.default": 2
+      },
+      "torch_export_succeeded": true,
+      "tt_compiled": false
+    },
+    {
+      "call": 0,
+      "case": "mixed-state-lengths",
+      "comparisons": {
+        "act_logits": {
+          "atol": 0.0001,
+          "elements": 16,
+          "max_abs_error": 0.0,
+          "max_relative_error": 0.0,
+          "passed": true,
+          "pcc": 0.9999999999999999,
+          "rmse": 0.0,
+          "rtol": 0.0001
+        },
+        "logits": {
+          "atol": 0.0001,
+          "elements": 24,
+          "max_abs_error": 0.0,
+          "max_relative_error": 0.0,
+          "passed": true,
+          "pcc": 0.9999999999999998,
+          "rmse": 0.0,
+          "rtol": 0.0001
+        },
+        "valid_logits": {
+          "atol": 0.0001,
+          "elements": 18,
+          "max_abs_error": 0.0,
+          "max_relative_error": 0.0,
+          "passed": true,
+          "pcc": 1.0,
+          "rmse": 0.0,
+          "rtol": 0.0001
+        }
+      },
+      "graph_sha256": "510a8d0dde8bab50af10e9e6a4c65e268838b110c12bb186ee1e68f37fe06f89",
+      "input_shapes": {
+        "attention_mask": [
+          8,
+          56
+        ],
+        "input_ids": [
+          8,
+          56
+        ],
+        "marker_mask": [
+          8,
+          3
+        ],
+        "marker_pos": [
+          8,
+          3
+        ],
+        "qtype": [
+          8
+        ]
+      },
+      "operators": {
+        "<built-in function getitem>": 142,
+        "aten.__and__.Tensor": 6,
+        "aten._assert_tensor_metadata.default": 188,
+        "aten._transformer_encoder_layer_fwd.default": 2,
+        "aten.abs.default": 1,
+        "aten.add.Tensor": 117,
+        "aten.arange.default": 9,
+        "aten.bitwise_not.default": 2,
+        "aten.cat.default": 59,
+        "aten.chunk.default": 28,
+        "aten.clamp.default": 2,
+        "aten.clamp_min.default": 1,
+        "aten.cos.default": 2,
+        "aten.detach.default": 1,
+        "aten.div.Tensor": 2,
+        "aten.dropout.default": 29,
+        "aten.embedding.default": 2,
+        "aten.expand.default": 5,
+        "aten.gather.default": 1,
+        "aten.ge.Scalar": 2,
+        "aten.gelu.default": 30,
+        "aten.index.Tensor": 2,
+        "aten.layer_norm.default": 58,
+        "aten.le.Scalar": 1,
+        "aten.linear.default": 116,
+        "aten.log.default": 2,
+        "aten.masked_fill.Scalar": 1,
+        "aten.masked_fill_.Scalar": 2,
+        "aten.matmul.default": 2,
+        "aten.mul.Tensor": 145,
+        "aten.neg.default": 57,
+        "aten.new_ones.default": 3,
+        "aten.reshape.default": 28,
+        "aten.scaled_dot_product_attention.default": 28,
+        "aten.select.int": 4,
+        "aten.sin.default": 2,
+        "aten.slice.Tensor": 112,
+        "aten.softmax.int": 1,
+        "aten.squeeze.dim": 1,
+        "aten.stack.default": 1,
+        "aten.sub.Tensor": 2,
+        "aten.sum.dim_IntList": 2,
+        "aten.to.device": 4,
+        "aten.to.dtype": 178,
+        "aten.to.dtype_layout": 6,
+        "aten.topk.default": 1,
+        "aten.transpose.int": 114,
+        "aten.unbind.int": 28,
+        "aten.unsqueeze.default": 83,
+        "aten.view.default": 28,
+        "aten.zeros_like.default": 2
+      },
+      "torch_export_succeeded": true,
+      "tt_compiled": false
+    },
+    {
+      "call": 0,
+      "case": "single-option",
+      "comparisons": {
+        "act_logits": {
+          "atol": 0.0001,
+          "elements": 2,
+          "max_abs_error": 0.0,
+          "max_relative_error": 0.0,
+          "passed": true,
+          "pcc": 1.0,
+          "rmse": 0.0,
+          "rtol": 0.0001
+        },
+        "logits": {
+          "atol": 0.0001,
+          "elements": 1,
+          "max_abs_error": 0.0,
+          "max_relative_error": 0.0,
+          "passed": true,
+          "pcc": null,
+          "rmse": 0.0,
+          "rtol": 0.0001
+        },
+        "valid_logits": {
+          "atol": 0.0001,
+          "elements": 1,
+          "max_abs_error": 0.0,
+          "max_relative_error": 0.0,
+          "passed": true,
+          "pcc": null,
+          "rmse": 0.0,
+          "rtol": 0.0001
+        }
+      },
+      "graph_sha256": "5a32992bd422bf23da6bb0023e5a8514fb82b75772c3ebbac5abe924b4197e0d",
+      "input_shapes": {
+        "attention_mask": [
+          1,
+          24
+        ],
+        "input_ids": [
+          1,
+          24
+        ],
+        "marker_mask": [
+          1,
+          1
+        ],
+        "marker_pos": [
+          1,
+          1
+        ],
+        "qtype": [
+          1
+        ]
+      },
+      "operators": {
+        "<built-in function getitem>": 142,
+        "aten.__and__.Tensor": 6,
+        "aten._assert_tensor_metadata.default": 188,
+        "aten._transformer_encoder_layer_fwd.default": 2,
+        "aten.abs.default": 1,
+        "aten.add.Tensor": 117,
+        "aten.arange.default": 9,
+        "aten.bitwise_not.default": 2,
+        "aten.cat.default": 60,
+        "aten.chunk.default": 28,
+        "aten.clamp.default": 2,
+        "aten.clamp_min.default": 1,
+        "aten.cos.default": 2,
+        "aten.detach.default": 1,
+        "aten.div.Tensor": 2,
+        "aten.dropout.default": 29,
+        "aten.embedding.default": 2,
+        "aten.expand.default": 5,
+        "aten.gather.default": 1,
+        "aten.ge.Scalar": 2,
+        "aten.gelu.default": 30,
+        "aten.index.Tensor": 2,
+        "aten.layer_norm.default": 58,
+        "aten.le.Scalar": 1,
+        "aten.linear.default": 116,
+        "aten.log.default": 2,
+        "aten.masked_fill.Scalar": 1,
+        "aten.masked_fill_.Scalar": 2,
+        "aten.matmul.default": 2,
+        "aten.mul.Tensor": 145,
+        "aten.neg.default": 57,
+        "aten.new_ones.default": 3,
+        "aten.reshape.default": 28,
+        "aten.scaled_dot_product_attention.default": 28,
+        "aten.select.int": 4,
+        "aten.sin.default": 2,
+        "aten.slice.Tensor": 112,
+        "aten.softmax.int": 1,
+        "aten.squeeze.dim": 1,
+        "aten.stack.default": 1,
+        "aten.sub.Tensor": 2,
+        "aten.sum.dim_IntList": 2,
+        "aten.to.device": 4,
+        "aten.to.dtype": 178,
+        "aten.to.dtype_layout": 6,
+        "aten.topk.default": 1,
+        "aten.transpose.int": 114,
+        "aten.unbind.int": 28,
+        "aten.unsqueeze.default": 83,
+        "aten.view.default": 28,
+        "aten.zeros_like.default": 3
+      },
+      "torch_export_succeeded": true,
+      "tt_compiled": false
+    },
+    {
+      "call": 0,
+      "case": "conversation-truncation",
+      "comparisons": {
+        "act_logits": {
+          "atol": 0.0001,
+          "elements": 2,
+          "max_abs_error": 0.0,
+          "max_relative_error": 0.0,
+          "passed": true,
+          "pcc": 0.9999999999999999,
+          "rmse": 0.0,
+          "rtol": 0.0001
+        },
+        "logits": {
+          "atol": 0.0001,
+          "elements": 2,
+          "max_abs_error": 0.0,
+          "max_relative_error": 0.0,
+          "passed": true,
+          "pcc": 1.0,
+          "rmse": 0.0,
+          "rtol": 0.0001
+        },
+        "valid_logits": {
+          "atol": 0.0001,
+          "elements": 2,
+          "max_abs_error": 0.0,
+          "max_relative_error": 0.0,
+          "passed": true,
+          "pcc": 1.0,
+          "rmse": 0.0,
+          "rtol": 0.0001
+        }
+      },
+      "graph_sha256": "c76054e98566d6f399df3c5c82003d73140b4d65a148ce13127b82d64aa9cf09",
+      "input_shapes": {
+        "attention_mask": [
+          1,
+          512
+        ],
+        "input_ids": [
+          1,
+          512
+        ],
+        "marker_mask": [
+          1,
+          2
+        ],
+        "marker_pos": [
+          1,
+          2
+        ],
+        "qtype": [
+          1
+        ]
+      },
+      "operators": {
+        "<built-in function getitem>": 142,
+        "aten.__and__.Tensor": 6,
+        "aten._assert_tensor_metadata.default": 188,
+        "aten._transformer_encoder_layer_fwd.default": 2,
+        "aten.abs.default": 1,
+        "aten.add.Tensor": 117,
+        "aten.arange.default": 9,
+        "aten.bitwise_not.default": 2,
+        "aten.cat.default": 59,
+        "aten.chunk.default": 28,
+        "aten.clamp.default": 2,
+        "aten.clamp_min.default": 1,
+        "aten.cos.default": 2,
+        "aten.detach.default": 1,
+        "aten.div.Tensor": 2,
+        "aten.dropout.default": 29,
+        "aten.embedding.default": 2,
+        "aten.expand.default": 5,
+        "aten.gather.default": 1,
+        "aten.ge.Scalar": 2,
+        "aten.gelu.default": 30,
+        "aten.index.Tensor": 2,
+        "aten.layer_norm.default": 58,
+        "aten.le.Scalar": 1,
+        "aten.linear.default": 116,
+        "aten.log.default": 2,
+        "aten.masked_fill.Scalar": 1,
+        "aten.masked_fill_.Scalar": 2,
+        "aten.matmul.default": 2,
+        "aten.mul.Tensor": 145,
+        "aten.neg.default": 57,
+        "aten.new_ones.default": 3,
+        "aten.reshape.default": 28,
+        "aten.scaled_dot_product_attention.default": 28,
+        "aten.select.int": 4,
+        "aten.sin.default": 2,
+        "aten.slice.Tensor": 112,
+        "aten.softmax.int": 1,
+        "aten.squeeze.dim": 1,
+        "aten.stack.default": 1,
+        "aten.sub.Tensor": 2,
+        "aten.sum.dim_IntList": 2,
+        "aten.to.device": 4,
+        "aten.to.dtype": 178,
+        "aten.to.dtype_layout": 6,
+        "aten.topk.default": 1,
+        "aten.transpose.int": 114,
+        "aten.unbind.int": 28,
+        "aten.unsqueeze.default": 83,
+        "aten.view.default": 28,
+        "aten.zeros_like.default": 2
+      },
+      "torch_export_succeeded": true,
+      "tt_compiled": false
+    },
+    {
+      "call": 0,
+      "case": "option-temperature-buckets",
+      "comparisons": {
+        "act_logits": {
+          "atol": 0.0001,
+          "elements": 6,
+          "max_abs_error": 0.0,
+          "max_relative_error": 0.0,
+          "passed": true,
+          "pcc": 0.9999999999999998,
+          "rmse": 0.0,
+          "rtol": 0.0001
+        },
+        "logits": {
+          "atol": 0.0001,
+          "elements": 33,
+          "max_abs_error": 0.0,
+          "max_relative_error": 0.0,
+          "passed": true,
+          "pcc": 1.0,
+          "rmse": 0.0,
+          "rtol": 0.0001
+        },
+        "valid_logits": {
+          "atol": 0.0001,
+          "elements": 19,
+          "max_abs_error": 0.0,
+          "max_relative_error": 0.0,
+          "passed": true,
+          "pcc": 1.0,
+          "rmse": 0.0,
+          "rtol": 0.0001
+        }
+      },
+      "graph_sha256": "275c4d66ae1f2fd4c713faf4ae840bf18705fc2f53168f8d10e23d0d50cc442a",
+      "input_shapes": {
+        "attention_mask": [
+          3,
+          84
+        ],
+        "input_ids": [
+          3,
+          84
+        ],
+        "marker_mask": [
+          3,
+          11
+        ],
+        "marker_pos": [
+          3,
+          11
+        ],
+        "qtype": [
+          3
+        ]
+      },
+      "operators": {
+        "<built-in function getitem>": 142,
+        "aten.__and__.Tensor": 6,
+        "aten._assert_tensor_metadata.default": 188,
+        "aten._transformer_encoder_layer_fwd.default": 2,
+        "aten.abs.default": 1,
+        "aten.add.Tensor": 117,
+        "aten.arange.default": 9,
+        "aten.bitwise_not.default": 2,
+        "aten.cat.default": 59,
+        "aten.chunk.default": 28,
+        "aten.clamp.default": 2,
+        "aten.clamp_min.default": 1,
+        "aten.cos.default": 2,
+        "aten.detach.default": 1,
+        "aten.div.Tensor": 2,
+        "aten.dropout.default": 29,
+        "aten.embedding.default": 2,
+        "aten.expand.default": 5,
+        "aten.gather.default": 1,
+        "aten.ge.Scalar": 2,
+        "aten.gelu.default": 30,
+        "aten.index.Tensor": 2,
+        "aten.layer_norm.default": 58,
+        "aten.le.Scalar": 1,
+        "aten.linear.default": 116,
+        "aten.log.default": 2,
+        "aten.masked_fill.Scalar": 1,
+        "aten.masked_fill_.Scalar": 2,
+        "aten.matmul.default": 2,
+        "aten.mul.Tensor": 145,
+        "aten.neg.default": 57,
+        "aten.new_ones.default": 3,
+        "aten.reshape.default": 28,
+        "aten.scaled_dot_product_attention.default": 28,
+        "aten.select.int": 4,
+        "aten.sin.default": 2,
+        "aten.slice.Tensor": 112,
+        "aten.softmax.int": 1,
+        "aten.squeeze.dim": 1,
+        "aten.stack.default": 1,
+        "aten.sub.Tensor": 2,
+        "aten.sum.dim_IntList": 2,
+        "aten.to.device": 4,
+        "aten.to.dtype": 178,
+        "aten.to.dtype_layout": 6,
+        "aten.topk.default": 1,
+        "aten.transpose.int": 114,
+        "aten.unbind.int": 28,
+        "aten.unsqueeze.default": 83,
+        "aten.view.default": 28,
+        "aten.zeros_like.default": 2
+      },
+      "torch_export_succeeded": true,
+      "tt_compiled": false
+    }
+  ],
+  "loaded_state_integrity": {
+    "checked_elements": 421293830,
+    "checked_tensors": 206,
+    "checkpoint_sha256": "891102d372688fc2a094dac56a384bc537b87c63f21f9f3dac0be2b7cbc8d86c",
+    "comparison": "exact_numpy_promotion",
+    "mismatch_tensors": 0,
+    "mismatches": [],
+    "unchecked_nonpersistent_buffers": [
+      "encoder.rotary_emb.full_attention_inv_freq",
+      "encoder.rotary_emb.full_attention_original_inv_freq",
+      "encoder.rotary_emb.sliding_attention_inv_freq",
+      "encoder.rotary_emb.sliding_attention_original_inv_freq"
+    ],
+    "verified": true
+  },
+  "manifest_sha256": "cf9e83ed8b32e6282adde751d4ceb03eaca208b2e02668f23acdf84f29d9e14b",
+  "mode": "torch-export",
+  "note": "Full tensor graph experiment only; platform and semantic acceptance remain separate",
+  "physical_acceptance": false,
+  "reference_sha256": "d1cb5aaaebdc21b5b8c6db1287811fb098659370978e9d1f50e593b329acb085",
+  "schema_version": 1,
+  "status": "PASSED",
+  "torch_version": "2.14.0+cpu"
+}

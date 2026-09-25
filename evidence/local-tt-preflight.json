@@ -1,0 +1,25 @@
+{
+  "dtype": "float32",
+  "graph_executed": false,
+  "manifest_sha256": "cf9e83ed8b32e6282adde751d4ceb03eaca208b2e02668f23acdf84f29d9e14b",
+  "mode": "preflight",
+  "physical_acceptance": false,
+  "preflight": {
+    "compiler": null,
+    "graph_executed": false,
+    "lease_id": null,
+    "note": "Readiness inspection only; does not initialize or prove hardware",
+    "physical_acceptance": false,
+    "reasons": [
+      "No Linux Tenstorrent device nodes available",
+      "Missing TT compiler modules: torch_xla, torch_plugin_tt, pjrt_plugin_tt, tt_torch",
+      "Externally verified exclusive device lease and digest required"
+    ],
+    "status": "BLOCKED",
+    "visibility_proof": null
+  },
+  "reason": "No Linux Tenstorrent device nodes available; Missing TT compiler modules: torch_xla, torch_plugin_tt, pjrt_plugin_tt, tt_torch; Externally verified exclusive device lease and digest required",
+  "reference_sha256": "d1cb5aaaebdc21b5b8c6db1287811fb098659370978e9d1f50e593b329acb085",
+  "schema_version": 1,
+  "status": "BLOCKED"
+}

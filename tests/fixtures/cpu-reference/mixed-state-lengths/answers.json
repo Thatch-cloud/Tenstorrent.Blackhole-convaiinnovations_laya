@@ -1,0 +1,128 @@
+[
+  {
+    "model": "laya-rl-agent",
+    "answers": {
+      "department": {
+        "type": "choice",
+        "choice": "other",
+        "probabilities": {
+          "billing": 0.2042,
+          "technical": 0.3568,
+          "other": 0.4391
+        },
+        "confidence": 0.0411,
+        "answer_confidence": 0.4391,
+        "action": {
+          "act_probability": 1.0
+        }
+      },
+      "urgency": {
+        "type": "score",
+        "score": 0.7966,
+        "legend": {
+          "0": "Not urgent",
+          "1": "Soon",
+          "2": "Critical"
+        },
+        "probabilities": {
+          "0": 0.4271,
+          "1": 0.3492,
+          "2": 0.2237
+        },
+        "confidence": 0.0299,
+        "answer_confidence": 0.4271,
+        "action": {
+          "act_probability": 1.0
+        }
+      },
+      "refund": {
+        "type": "noul",
+        "noul": 0.0061,
+        "confidence": 0.9939,
+        "answer_confidence": 0.9939,
+        "action": {
+          "act_probability": 1.0
+        }
+      },
+      "only": {
+        "type": "choice",
+        "choice": "available",
+        "probabilities": {
+          "available": 1.0
+        },
+        "confidence": 1.0,
+        "answer_confidence": 1.0,
+        "action": {
+          "act_probability": 1.0
+        }
+      }
+    },
+    "usage": {
+      "input_tokens": 117,
+      "output_tokens": 0
+    }
+  },
+  {
+    "model": "laya-rl-agent",
+    "answers": {
+      "department": {
+        "type": "choice",
+        "choice": "technical",
+        "probabilities": {
+          "billing": 0.1471,
+          "technical": 0.8072,
+          "other": 0.0457
+        },
+        "confidence": 0.4576,
+        "answer_confidence": 0.8072,
+        "action": {
+          "act_probability": 1.0
+        }
+      },
+      "urgency": {
+        "type": "score",
+        "score": 1.7319,
+        "legend": {
+          "0": "Not urgent",
+          "1": "Soon",
+          "2": "Critical"
+        },
+        "probabilities": {
+          "0": 0.0782,
+          "1": 0.1116,
+          "2": 0.8101
+        },
+        "confidence": 0.4405,
+        "answer_confidence": 0.8101,
+        "action": {
+          "act_probability": 1.0
+        }
+      },
+      "refund": {
+        "type": "noul",
+        "noul": 0.6071,
+        "confidence": 0.6071,
+        "answer_confidence": 0.6071,
+        "action": {
+          "act_probability": 1.0
+        }
+      },
+      "only": {
+        "type": "choice",
+        "choice": "available",
+        "probabilities": {
+          "available": 1.0
+        },
+        "confidence": 1.0,
+        "answer_confidence": 1.0,
+        "action": {
+          "act_probability": 1.0
+        }
+      }
+    },
+    "usage": {
+      "input_tokens": 209,
+      "output_tokens": 0
+    }
+  }
+]

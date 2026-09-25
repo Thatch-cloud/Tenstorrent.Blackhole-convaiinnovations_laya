@@ -1,0 +1,263 @@
+{
+  "physical_acceptance": false,
+  "all_exact": true,
+  "comparisons": [
+    {
+      "case": "mixed-question-widths",
+      "call": 0,
+      "tensor": "input_ids",
+      "exact": true,
+      "max_abs": 0.0
+    },
+    {
+      "case": "mixed-question-widths",
+      "call": 0,
+      "tensor": "attention_mask",
+      "exact": true,
+      "max_abs": 0.0
+    },
+    {
+      "case": "mixed-question-widths",
+      "call": 0,
+      "tensor": "marker_pos",
+      "exact": true,
+      "max_abs": 0.0
+    },
+    {
+      "case": "mixed-question-widths",
+      "call": 0,
+      "tensor": "marker_mask",
+      "exact": true,
+      "max_abs": 0.0
+    },
+    {
+      "case": "mixed-question-widths",
+      "call": 0,
+      "tensor": "qtype",
+      "exact": true,
+      "max_abs": 0.0
+    },
+    {
+      "case": "mixed-question-widths",
+      "call": 0,
+      "tensor": "logits",
+      "exact": true,
+      "max_abs": 0.0
+    },
+    {
+      "case": "mixed-question-widths",
+      "call": 0,
+      "tensor": "act_logits",
+      "exact": true,
+      "max_abs": 0.0
+    },
+    {
+      "case": "mixed-state-lengths",
+      "call": 0,
+      "tensor": "input_ids",
+      "exact": true,
+      "max_abs": 0.0
+    },
+    {
+      "case": "mixed-state-lengths",
+      "call": 0,
+      "tensor": "attention_mask",
+      "exact": true,
+      "max_abs": 0.0
+    },
+    {
+      "case": "mixed-state-lengths",
+      "call": 0,
+      "tensor": "marker_pos",
+      "exact": true,
+      "max_abs": 0.0
+    },
+    {
+      "case": "mixed-state-lengths",
+      "call": 0,
+      "tensor": "marker_mask",
+      "exact": true,
+      "max_abs": 0.0
+    },
+    {
+      "case": "mixed-state-lengths",
+      "call": 0,
+      "tensor": "qtype",
+      "exact": true,
+      "max_abs": 0.0
+    },
+    {
+      "case": "mixed-state-lengths",
+      "call": 0,
+      "tensor": "logits",
+      "exact": true,
+      "max_abs": 0.0
+    },
+    {
+      "case": "mixed-state-lengths",
+      "call": 0,
+      "tensor": "act_logits",
+      "exact": true,
+      "max_abs": 0.0
+    },
+    {
+      "case": "single-option",
+      "call": 0,
+      "tensor": "input_ids",
+      "exact": true,
+      "max_abs": 0.0
+    },
+    {
+      "case": "single-option",
+      "call": 0,
+      "tensor": "attention_mask",
+      "exact": true,
+      "max_abs": 0.0
+    },
+    {
+      "case": "single-option",
+      "call": 0,
+      "tensor": "marker_pos",
+      "exact": true,
+      "max_abs": 0.0
+    },
+    {
+      "case": "single-option",
+      "call": 0,
+      "tensor": "marker_mask",
+      "exact": true,
+      "max_abs": 0.0
+    },
+    {
+      "case": "single-option",
+      "call": 0,
+      "tensor": "qtype",
+      "exact": true,
+      "max_abs": 0.0
+    },
+    {
+      "case": "single-option",
+      "call": 0,
+      "tensor": "logits",
+      "exact": true,
+      "max_abs": 0.0
+    },
+    {
+      "case": "single-option",
+      "call": 0,
+      "tensor": "act_logits",
+      "exact": true,
+      "max_abs": 0.0
+    },
+    {
+      "case": "conversation-truncation",
+      "call": 0,
+      "tensor": "input_ids",
+      "exact": true,
+      "max_abs": 0.0
+    },
+    {
+      "case": "conversation-truncation",
+      "call": 0,
+      "tensor": "attention_mask",
+      "exact": true,
+      "max_abs": 0.0
+    },
+    {
+      "case": "conversation-truncation",
+      "call": 0,
+      "tensor": "marker_pos",
+      "exact": true,
+      "max_abs": 0.0
+    },
+    {
+      "case": "conversation-truncation",
+      "call": 0,
+      "tensor": "marker_mask",
+      "exact": true,
+      "max_abs": 0.0
+    },
+    {
+      "case": "conversation-truncation",
+      "call": 0,
+      "tensor": "qtype",
+      "exact": true,
+      "max_abs": 0.0
+    },
+    {
+      "case": "conversation-truncation",
+      "call": 0,
+      "tensor": "logits",
+      "exact": true,
+      "max_abs": 0.0
+    },
+    {
+      "case": "conversation-truncation",
+      "call": 0,
+      "tensor": "act_logits",
+      "exact": true,
+      "max_abs": 0.0
+    },
+    {
+      "case": "option-temperature-buckets",
+      "call": 0,
+      "tensor": "input_ids",
+      "exact": true,
+      "max_abs": 0.0
+    },
+    {
+      "case": "option-temperature-buckets",
+      "call": 0,
+      "tensor": "attention_mask",
+      "exact": true,
+      "max_abs": 0.0
+    },
+    {
+      "case": "option-temperature-buckets",
+      "call": 0,
+      "tensor": "marker_pos",
+      "exact": true,
+      "max_abs": 0.0
+    },
+    {
+      "case": "option-temperature-buckets",
+      "call": 0,
+      "tensor": "marker_mask",
+      "exact": true,
+      "max_abs": 0.0
+    },
+    {
+      "case": "option-temperature-buckets",
+      "call": 0,
+      "tensor": "qtype",
+      "exact": true,
+      "max_abs": 0.0
+    },
+    {
+      "case": "option-temperature-buckets",
+      "call": 0,
+      "tensor": "logits",
+      "exact": true,
+      "max_abs": 0.0
+    },
+    {
+      "case": "option-temperature-buckets",
+      "call": 0,
+      "tensor": "act_logits",
+      "exact": true,
+      "max_abs": 0.0
+    }
+  ],
+  "reference_indexes": [
+    {
+      "capture": "cpu-integrity-checked",
+      "sha256": "d1cb5aaaebdc21b5b8c6db1287811fb098659370978e9d1f50e593b329acb085"
+    },
+    {
+      "capture": "cpu-integrity-repeat",
+      "sha256": "d1cb5aaaebdc21b5b8c6db1287811fb098659370978e9d1f50e593b329acb085"
+    }
+  ],
+  "answers_byte_identical": true,
+  "fresh_processes": 2
+}

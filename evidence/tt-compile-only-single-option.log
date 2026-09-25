@@ -1,0 +1,10 @@
+/mnt/d/Programming/Tenstorrent.Blackhole-convaiinnovations_laya/scripts/compiler_spike.py:248: RuntimeWarning: laya: this checkpoint ships invalid temperatures or values outside [0.5, 5]; using choice:11+=0.10058280825614929 -> 0.5. Treat confidence from the affected entries as uncalibrated.
+  agent = upstream_agent.Agent(str(checkpoint), device="cpu", compile=False, fast=False)
+2026-09-25 15:40:45.560 | WARNING  | torch_plugin_tt:__init__:43 - TT plugin is setting XLA_STABLEHLO_COMPILE to 1. This is required for TT PJRT plugin to work correctly.
+/mnt/d/Programming/Tenstorrent.Blackhole-convaiinnovations_laya/scripts/compiler_spike.py:349: DeprecationWarning: Use torch_xla.device instead
+  device = xm.xla_device()
+2026-09-25 15:40:45.748 (   0.189s) [        17F44080]     client_instance.cc:395   INFO| Loading system descriptor from path: /mnt/d/Programming/Tenstorrent.Blackhole-convaiinnovations_laya/configs/compiler/p150_system_desc.ttsys
+2026-09-25 15:40:45.758506: W torch_xla/csrc/runtime/profiler.cpp:88] Profiler API not found for PJRT plugin
+error: 'builtin.module' op system desc schema mismatch, please collect a system desc with a runtime compiled with the same schema version
+2026-09-25 15:41:27.249 (  38.746s) [        17F44080]      module_builder.cc:1169   ERR| Failed to run TTIRToTTNNCommon pipeline
+{"status": "FAILED", "report": "/mnt/d/Programming/Tenstorrent.Blackhole-convaiinnovations_laya/artifacts/compiler/offline-single-option-v2/report.json", "physical_acceptance": false}

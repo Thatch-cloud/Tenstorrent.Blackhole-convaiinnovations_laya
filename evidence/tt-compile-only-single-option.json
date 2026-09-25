@@ -1,0 +1,42 @@
+{
+  "compilation_attempted": true,
+  "compilation_status": "FAILED",
+  "compile_only": true,
+  "compile_only_preflight": {
+    "compiler": {
+      "commit": "873c53c4ff84bd91112a1f43e788cfed75aaa914",
+      "version": "1.5.0.dev20260831000501"
+    },
+    "device_nodes_exposed": false,
+    "system_descriptor": {
+      "file": "p150_system_desc.ttsys",
+      "sha256": "655fabe5445624b0c9a6a312b90fb5e9a30a78614e43d331e9d622561e09b5ac",
+      "upstream_commit": "873c53c4ff84bd91112a1f43e788cfed75aaa914"
+    }
+  },
+  "dtype": "float32",
+  "error_type": "ValueError",
+  "loaded_state_integrity": {
+    "checked_elements": 421293830,
+    "checked_tensors": 206,
+    "checkpoint_sha256": "891102d372688fc2a094dac56a384bc537b87c63f21f9f3dac0be2b7cbc8d86c",
+    "comparison": "exact_numpy_promotion",
+    "mismatch_tensors": 0,
+    "mismatches": [],
+    "unchecked_nonpersistent_buffers": [
+      "encoder.rotary_emb.full_attention_inv_freq",
+      "encoder.rotary_emb.full_attention_original_inv_freq",
+      "encoder.rotary_emb.sliding_attention_inv_freq",
+      "encoder.rotary_emb.sliding_attention_original_inv_freq"
+    ],
+    "verified": true
+  },
+  "manifest_sha256": "cf9e83ed8b32e6282adde751d4ceb03eaca208b2e02668f23acdf84f29d9e14b",
+  "mode": "tt-compile-only",
+  "physical_acceptance": false,
+  "reason": "Error code: 13",
+  "reference_sha256": "d1cb5aaaebdc21b5b8c6db1287811fb098659370978e9d1f50e593b329acb085",
+  "schema_version": 1,
+  "status": "FAILED",
+  "torch_version": "2.11.0+cpu"
+}
