@@ -8,14 +8,14 @@ acceptance. It is not a claim that the complete single-P150A service is ready.
 | Pinned English source and model | Immutable source/checkpoint lock plus SHA256 for all five checkpoint assets | Reproduce under accelerator toolchain |
 | Reproducible CPU reference | Two independent processes pass exact loaded-state checks; 35 tensors and every answer match exactly | Derived rotary buffers and representative application dataset coverage |
 | Typed semantics and action outputs | Real fixtures cover choice, score, noul, single-option, mixed widths, batching, truncation, empty questions and temperature buckets | Physical device probability/decision parity, approved tolerances |
-| Strict full-model export | Five actual CPU graphs export and match the checked baseline with zero observed output error | Single-option FP32 graph compiled offline after verified descriptor migration; remaining shapes, BF16 and physical TT execution are unverified |
+| Strict full-model export | Five actual CPU graphs export and match the checked baseline with zero observed output error | Four of five FP32-source calls compiled offline (lowered IR includes BF16); fifth failed loaded-state integrity before compilation; physical TT execution remains unverified |
 | Shared runtime admission | Exact-byte payload binding, injected grant verifier and durable reservation hook, bounded payload/token/work admission | Real platform credential issuer and ledger implementation |
-| Serialized shared worker | Tenant rotation, queue budgets, deadlines, cancellation and drain ownership tests | Host crash recovery and device claims |
+| Serialized shared worker | Tenant rotation, queue budgets, deadlines, cancellation and drain ownership tests | Local journal exposes interrupted work and prevents replay; device ownership recovery remains |
 | Runtime composition | Actual CPU backend through admission/worker/response path with two tenants using identical IDs | Production startup and deployment wiring |
 | Internal HTTP transport | In-process ASGI tests cover bounded fragmented bodies, opaque grant forwarding, readiness, event-loop responsiveness and disconnect ownership | Real host dispatch and listener deployment |
 | Runtime readiness | Required model self-test, failed/draining states and preparation concurrency bound | Actual accelerator startup/warmup and hardware observations |
 | Installed contracts | Wheel contains all three schemas and isolated wheel import validates them | Versioned release and consumer dependency pins |
-| Usage | Measured local queue/execution times, question rows and encoded tokens; no invented accelerator time | Durable receipts/replay/accounting and explicit billing policy |
+| Usage | Measured local queue/execution times, question rows and encoded tokens; no invented accelerator time | Optional durable local journal/outbox now tested; authenticated delivery, authoritative accounting and billing policy remain |
 | Single-board ownership | Read-only hardware inventory completed | Enforced allocation and version-specific initialization isolation |
 | Multi-tenant platform release | Initial protocol compatibility work is separate | Gateway, Management dispatch, Compute lifecycle, isolation/recovery tests and deployed acceptance |
 
@@ -32,3 +32,13 @@ No TT latency, throughput, capacity, tenant hardware isolation or deployed
 service claim follows from these local checks. The BF16 one-card graph,
 end-to-end benchmarks, immutable serving image and canary/rollback evidence
 remain outstanding.
+
+
+## Published CPU contract check
+
+GitHub Actions run [36093507962](https://github.com/Thatch-cloud/Tenstorrent.Blackhole-convaiinnovations_laya/actions/runs/36093507962)
+passed on commit `604657517f411187d664446569f5e63409dd54b5` for Python 3.11
+and 3.12 on Ubuntu 24.04. Each job ran 161 tests with 2 optional model-backed
+checks skipped, plus 92 passing subtests, then validated an isolated wheel install.
+This checks the committed fixture bytes, runtime contracts and package resources;
+it does not download or reload the full checkpoint and is not hardware acceptance.

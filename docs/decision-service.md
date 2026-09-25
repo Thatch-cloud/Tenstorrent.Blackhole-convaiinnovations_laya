@@ -58,3 +58,10 @@ A racing admission may consume a reservation and then be rejected by draining.
 
 There is no process-local substitute for durable replay prevention, no TT-to-CPU
 fallback, and no claim of measured accelerator usage or hardware acceptance here.
+
+
+An optional durable [execution journal](execution-journal.md) now records local
+admission, execution and receipt outcomes, including cancelled delivery and process
+crashes. It does not implement the external reservation authority or authenticated
+receipt receiver. Without an explicitly configured receipt sink, this service
+retains the in-memory behavior described above.

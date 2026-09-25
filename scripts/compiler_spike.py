@@ -18,6 +18,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 from laya_tt.reference import checkpoint_files, sha256_file, validate_manifest
+from laya_tt.integrity import LoadedStateIntegrityError
 
 INPUTS = ("input_ids", "attention_mask", "marker_pos", "marker_mask", "qtype")
 OUTPUTS = ("logits", "act_logits")
@@ -457,6 +458,9 @@ def main(argv=None):
     except Blocked as exc:
         report.update(status="BLOCKED", reason=str(exc))
         code = 2
+    except LoadedStateIntegrityError as exc:
+        report.update(status="FAILED", error_type=type(exc).__name__, reason=str(exc),
+                      loaded_state_integrity=exc.report)
     except Exception as exc:
         report.update(status="FAILED", error_type=type(exc).__name__, reason=str(exc))
     finally:

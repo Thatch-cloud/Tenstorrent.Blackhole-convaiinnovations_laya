@@ -9,6 +9,7 @@ import json
 import threading
 
 from .admission import AdmissionRejected, InvalidRequest, PreparationFailed, RequestTooLarge
+from .ledger import JournalReplay
 from .service import AdmissionCapacityExceeded, ServiceNotReady
 from .worker import DeadlineExceeded, DuplicateRequest, QueueFull, WorkerClosed
 
@@ -132,7 +133,7 @@ class DecisionASGI:
             return 403, "invalid_admission"
         if isinstance(exc, DeadlineExceeded):
             return 504, "deadline_exceeded"
-        if isinstance(exc, DuplicateRequest):
+        if isinstance(exc, (DuplicateRequest, JournalReplay)):
             return 409, "duplicate_request"
         if isinstance(exc, (ServiceNotReady, WorkerClosed, FutureCancelled)):
             return 503, "service_unavailable"

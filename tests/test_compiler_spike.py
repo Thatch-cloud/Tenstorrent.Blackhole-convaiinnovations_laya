@@ -309,3 +309,24 @@ def test_migrated_descriptor_rejects_incorrect_identity_even_with_review_pin(tmp
     with patch.object(spike.Path, "glob", return_value=[]):
         with pytest.raises(ValueError, match="provenance identity"):
             spike.compile_only_preflight(path, digest, spike.OFFLINE_NIGHTLY_COMMIT)
+def test_failed_loaded_state_details_survive_offline_report(tmp_path, monkeypatch):
+    reference, digest, manifest, cases = fixture(tmp_path)
+    output = tmp_path / "failed-integrity"
+    details = {"verified": False, "mismatch_tensors": 1,
+               "mismatches": [{"key": "encoder.embeddings.tok_embeddings.weight",
+                               "mismatched_elements": 1, "max_abs_difference": 0.25}]}
+    error = spike.LoadedStateIntegrityError(details)
+    monkeypatch.delenv("TT_COMPILE_ONLY_SYSTEM_DESC", raising=False)
+    with patch.object(spike, "compile_only_preflight", return_value={"device_nodes_exposed": False}), \
+         patch.object(spike, "validate_manifest", return_value=(tmp_path, tmp_path)), \
+         patch.object(spike, "run_compile_only", side_effect=error):
+        code = spike.main(["--mode", "tt-compile-only", "--reference", str(reference),
+                           "--reference-sha256", digest, "--manifest", str(manifest),
+                           "--cases", str(cases), "--output", str(output), "--case-id", "sample"])
+    report = json.loads((output / "report.json").read_text())
+    assert code == 1
+    assert report["status"] == report["compilation_status"] == "FAILED"
+    assert report["loaded_state_integrity"] == details
+    assert report["physical_acceptance"] is False
+    assert "compilation" not in report
+    assert "graph_executed" not in report

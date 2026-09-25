@@ -1,11 +1,11 @@
 """Internal decision service: verified admission, serialized execution, response.
 
-No transport/authentication implementation or durable usage ledger lives here.
+Authentication remains injected; an optional durable receipt sink records execution.
 Bootstrap supplies the real backend, verified runtime identity and startup test.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 import json
 from pathlib import Path
 import re
@@ -17,8 +17,9 @@ from jsonschema import Draft202012Validator
 
 from .admission import AdmissionAdapter, AdmittedRequest
 from .contracts import load_schema
+from .ledger import JournalReplay
 from .reference import validate_answers
-from .worker import SerializedWorker
+from .worker import DeadlineExceeded, SerializedWorker
 
 
 class ServiceNotReady(RuntimeError):
@@ -65,10 +66,14 @@ class DecisionService:
     """
     def __init__(self, *, admission: AdmissionAdapter, backend: Callable,
                  runtime: RuntimeIdentity, schema_dir: Path | None = None, worker_limits=None,
-                 max_admitting: int = 8):
+                 max_admitting: int = 8, receipt_sink=None):
         if type(max_admitting) is not int or max_admitting <= 0:
             raise ValueError("max_admitting must be a positive integer")
         self._admission, self._backend, self.runtime = admission, backend, runtime
+        if receipt_sink is not None and not all(callable(getattr(receipt_sink, name, None)) for name in
+                ("admitted", "started", "completed", "failed", "not_started", "delivery")):
+            raise ValueError("receipt sink must implement the execution journal contract")
+        self._receipts = receipt_sink
         schema = (load_schema("decision-response") if schema_dir is None else
                   json.loads((Path(schema_dir) / "decision-response.schema.json").read_text(encoding="utf-8")))
         Draft202012Validator.check_schema(schema)
@@ -131,17 +136,27 @@ class DecisionService:
             if any(context[key] != getattr(self.runtime, key) for key in
                    ("model", "checkpoint_revision", "runtime_generation")):
                 raise ServiceNotReady("admission targets a different loaded runtime")
-            with self._cv:
-                if self._state != "ready":
-                    raise ServiceNotReady("service drained during admission")
-            # Do not nest the service and worker locks: Future callbacks may
-            # inspect readiness while the worker's deadline monitor holds its
-            # lock. Drain closes worker admission independently; an admission
-            # already in progress either queues before that close or is refused.
-            return self._worker.submit(
-                context["tenant_id"], context["execution_attempt_id"],
-                _QueuedDecision(admitted, time.monotonic()),
-                cost=admitted.prepared.encoded_tokens, deadline=admitted.deadline)
+            if self._receipts is not None:
+                self._receipt_call("admitted", context, admitted.prepared.question_rows,
+                                   admitted.prepared.encoded_tokens, asdict(self.runtime))
+            try:
+                with self._cv:
+                    if self._state != "ready":
+                        raise ServiceNotReady("service drained during admission")
+                # Do not nest service and worker locks: deadline callbacks may
+                # inspect readiness while holding the worker's lock.
+                future = self._worker.submit(
+                    context["tenant_id"], context["execution_attempt_id"],
+                    _QueuedDecision(admitted, time.monotonic()),
+                    cost=admitted.prepared.encoded_tokens, deadline=admitted.deadline)
+            except BaseException:
+                if self._receipts is not None:
+                    self._receipt_call("not_started", context, "queue_rejected")
+                raise
+            if self._receipts is not None:
+                # Capture identifiers only, never retain prepared input buffers.
+                future.add_done_callback(lambda done: self._record_delivery(context, done))
+            return future
         finally:
             with self._cv:
                 self._admitting -= 1
@@ -149,14 +164,22 @@ class DecisionService:
 
     def _execute(self, work: _QueuedDecision) -> dict:
         with self._cv:
-            if self._runtime_failed:
-                raise ServiceNotReady("runtime failed; a new service generation is required")
-        started = time.monotonic()
+            failed = self._runtime_failed
+        if failed:
+            if self._receipts is not None:
+                self._receipt_call("not_started", work.admitted.context, "runtime_failed")
+            raise ServiceNotReady("runtime failed; a new service generation is required")
+        queue_ms = max(0, int((time.monotonic() - work.queued_at) * 1000))
         admitted = work.admitted
+        if self._receipts is not None and not self._receipt_call("started", admitted.context, queue_ms):
+            raise ServiceNotReady("request was withdrawn before execution")
+        started = time.monotonic()
         try:
             result = self._backend(admitted.prepared.payload)
         except BaseException:
             self._mark_failed()
+            if self._receipts is not None:
+                self._receipt_call("failed", admitted.context, max(0, int((time.monotonic()-started)*1000)))
             raise
         finished = time.monotonic()
         try:
@@ -177,14 +200,48 @@ class DecisionService:
                 "backend": self.runtime.backend, "answers": answers,
                 "usage": {"requests": 1, "question_rows": admitted.prepared.question_rows,
                           "encoded_tokens": admitted.prepared.encoded_tokens, "output_tokens": 0,
-                          "queue_ms": max(0, int((started - work.queued_at) * 1000)),
+                          "queue_ms": queue_ms,
                           "execution_ms": max(0, int((finished - started) * 1000))},
             }
             self._validator.validate(response)
-            return response
         except Exception:
             self._mark_failed()
+            if self._receipts is not None:
+                self._receipt_call("failed", admitted.context, max(0, int((finished-started)*1000)))
             raise InvalidBackendResult("backend result violates decision contract") from None
+        # Commit evidence before Future delivery, including when the caller has
+        # already cancelled. A commit failure leaves a running/unknown record;
+        # never manufacture a failed or completed receipt for that gap.
+        if self._receipts is not None:
+            self._receipt_call("completed", admitted.context, response["usage"])
+        return response
+
+    def _receipt_call(self, name, *args):
+        try:
+            return getattr(self._receipts, name)(*args)
+        except JournalReplay:
+            raise  # Expected duplicate admission is not a failed model/storage plane.
+        except BaseException:
+            self._mark_failed()
+            raise
+
+    def _record_delivery(self, context, future):
+        try:
+            if future.cancelled():
+                outcome = "cancelled"
+            elif isinstance(future.exception(), DeadlineExceeded):
+                outcome = "expired"
+            elif future.exception() is not None:
+                outcome = "failed"
+            else:
+                outcome = "result_ready"  # Not an acknowledgment from a client.
+            if outcome in ("cancelled", "expired"):
+                self._receipt_call("not_started", context, outcome)
+            self._receipt_call("delivery", context, outcome)
+        except BaseException:
+            # Receipt failure withdraws readiness; Future callbacks must not log
+            # exceptions or pretend they can revoke an already completed Future.
+            self._mark_failed()
 
     def _mark_failed(self):
         with self._cv:

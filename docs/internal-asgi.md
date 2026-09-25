@@ -57,3 +57,10 @@ The existing reservation and durable usage gaps remain unchanged. Transport
 delivery, disconnect and cancellation do not establish exactly-once billing or
 authorize releasing reservations/device claims. Administration/Management must
 reconcile those outcomes using the established platform identity infrastructure.
+
+
+An optional durable [execution journal](execution-journal.md) now records local
+admission, execution and receipt outcomes, including cancelled delivery and process
+crashes. It does not implement the external reservation authority or authenticated
+receipt receiver. Without an explicitly configured receipt sink, this service
+retains the in-memory behavior described above.

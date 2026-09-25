@@ -124,7 +124,7 @@ Primary-source audit: [nightly compile-only test](https://github.com/tenstorrent
 
 The audited physical stack resolves TT-XLA `3bf6e4201f008fdf5a0ce5d244bc83ad155ee328` to TT-MLIR `c282803f8f628881e805b2bbf6dc5bf53a0d230d`, TT-Metal `d04395ed862b4c65eb6877000c40200f456cb74e`, and UMD `8f3ffb71150b4ebf9691b01fd24b5b6f8fb8d404` (gitlink confirmed separately). Metal's `tt_metal/llrt/tt_cluster.cpp::open_driver` constructs a Silicon UMD cluster without explicitly passing target devices. UMD's Silicon cluster constructor calls `TopologyDiscovery::discover`; its PCIe discovery enumerates devices, constructs TTDevice objects, then calls `init_device` for discovered nodes.
 
-This bounded inspection does not prove where PCI enumeration applies visibility filtering, or that exposing only one character device is supported. It therefore does not supersede the pinned documentation's warning about one-node containers. A board reservation and BDF selector cannot establish that discovery leaves other active boards untouched. Physical execution remains blocked until that exact installed stack has externally verified initialization isolation. Offline compilation avoids this unresolved path by loading the descriptor and skipping physical mesh creation, with no device nodes exposed.
+The completed [device visibility audit](device-visibility-audit.md) locates filtering before TTDevice creation and initialization in this newer UMD revision. However, constructing the BDF map first opens all numeric device nodes for metadata queries. This source result does not establish physical isolation or support for a one-node container on the installed runtime. A verified device lease and installed-stack isolation evidence remain absent. Offline compilation avoids physical discovery by loading the descriptor and skipping physical mesh creation, with no device nodes exposed.
 
 Sources: [Metal cluster](https://github.com/tenstorrent/tt-metal/blob/d04395ed862b4c65eb6877000c40200f456cb74e/tt_metal/llrt/tt_cluster.cpp), [UMD cluster](https://github.com/tenstorrent/tt-umd/blob/8f3ffb71150b4ebf9691b01fd24b5b6f8fb8d404/device/cluster.cpp), [UMD topology discovery](https://github.com/tenstorrent/tt-umd/blob/8f3ffb71150b4ebf9691b01fd24b5b6f8fb8d404/device/topology/topology_discovery.cpp).
 
@@ -149,3 +149,54 @@ uses Hub1.16.1. Model/tokenizer artifact hashes remain unchanged. When using the
 Windows upstream checkout through WSL, pass Git's original core.autocrlf=true
 policy to subprocesses; otherwise every CRLF text file appears modified. A
 native Linux clone of the same immutable source avoids that platform detail.
+
+
+## Successful offline compilation after migration
+
+The single-option FP32 graph compiled successfully with the explicitly pinned,
+offline-only migrated P150 descriptor. See
+`evidence/tt-compile-only-single-option-migrated.json` and its companion log.
+The original descriptor failure above remains part of the evidence.
+
+The run verified all 206 loaded tensors (421,293,830 elements), then produced a
+2,505,256-byte TTNN binary, TTIR and TTNN MLIR. All three artifact sizes and
+SHA256 digests were independently checked against the report. No TT device nodes
+were exposed, dummy outputs were never read, and no numerical comparison or
+physical inference occurred. This is one input shape, not full shape coverage,
+BF16 acceptance, memory-fit evidence, or a throughput result.
+
+Use `configs/compiler/migrated-p150/p150-migrated-nightly.ttsys` and SHA256
+`6028485af0f8c233185b87277f36061c2460db606f14a47bcb8284f5af5f56f3`
+with the exact offline nightly above. Keep its adjacent `provenance.json`;
+the harness requires its pinned digest and checks its identity. The migration
+procedure and complete-root preservation checks are in
+[descriptor-migration.md](descriptor-migration.md).
+
+## Compiler coverage matrix
+
+`scripts/run_offline_matrix.py` runs each selected reference forward in a fresh subprocess with its own output/cache. It refuses exposed TT nodes, pins the reference and migrated descriptor, bounds each compilation to 1200 seconds by default, and validates the resulting report identity, loaded-state integrity, three artifact sizes/hashes, and offline-only flags. It writes per-case logs plus an aggregate `matrix.json`; elapsed times describe host compilation duration, not inference latency.
+
+The default selection covers mixed question widths, mixed state lengths, conversation truncation, and option/temperature buckets. The existing single-option experiment supplies the fifth executable fixture. `empty-questions` has no tensor forward and remains a CPU/API behavior case. Coverage is limited to these captured shapes, not arbitrary dynamic shapes or platform concurrency.
+
+```bash
+python scripts/run_offline_matrix.py --root "$PWD" \
+  --output artifacts/compiler/offline-matrix-fp32-v1
+```
+
+The output directory must be new. Run with the audited Linux nightly environment and no inherited accelerator selectors.
+
+Observed matrix result: mixed question widths `[4,43]`, mixed state lengths `[8,56]`, and conversation truncation `[1,512]` all compiled with three hash-verified artifacts each. Together with single-option `[1,24]`, this is four of five executable fixtures. The option/temperature-bucket fixture stopped before compilation because exact loaded-state verification detected a mismatch in `encoder.embeddings.tok_embeddings.weight` in the Linux process. This is an integrity failure, not an operator-lowering failure. The original failure is retained; its report predates structured mismatch-detail preservation and cannot identify the differing elements. Subsequent integrity failures retain the exception's compact report. No retry overwrote this evidence and no model repair or tolerance change was applied.
+
+The aggregate hashes and outcomes are recorded in [offline-fp32-coverage.json](../evidence/compiler/offline-fp32-coverage.json), with original reports/logs under `artifacts/compiler/offline-matrix-fp32-v1`. Matrix coverage remains incomplete pending investigation of that integrity failure.
+
+## Mixed-precision follow-up
+
+The current experiment's `dtype: float32` describes the source model and CPU reference. It does not establish that every lowered operation executes in FP32. The successful `mixed-question-widths` TTNN IR contains BF16 memory layouts, including the token embedding (`50368x1024`) and question-type embedding (`3x1024`). Compiler artifact generation therefore requires later numerical validation even before introducing an explicit BF16 source policy.
+
+At audited Laya commit `970dc8c5f63d7b886a68409493f37d569424f933`, `laya/common.py:163` casts scorer logits to float32; lines 166–180 derive probabilities and action features from those logits; line 181 casts pooled encoder state to float32; line 182 passes the concatenated FP32 features to `act_head`. Converting the complete model to BF16 without autocast changes action-head weights to BF16 while leaving its input FP32, creating a dtype mismatch. The checkpoint also has two decision-head transformer layers, which must be included in any precision policy.
+
+A candidate for a separate experiment is BF16 encoder, question-type embedding, decision transformer head, and scorer, while keeping the action head, temperature buffer, probability features, and rotary inverse-frequency buffers in FP32. This is an explicit mixed-precision hypothesis, not upstream AMP equivalence and not validated behavior. The upstream CPU AMP path is another possible baseline; its fallback must not be silently inherited by compiler experiments.
+
+Before changing compiler dtype handling, capture a separate guarded CPU reference for the chosen policy, record parameter/buffer and boundary activation dtypes, compare logits, action logits, probabilities and final answers with the FP32 reference, then export and compile that exact policy. Retain exact checkpoint-promotion verification and distinct artifact paths. Neither offline compile success nor dummy buffers can pass numerical or physical acceptance.
+
+Source: [audited decision model](https://github.com/NandhaKishorM/laya/blob/970dc8c5f63d7b886a68409493f37d569424f933/laya/common.py#L147), [upstream AMP inference policy](https://github.com/NandhaKishorM/laya/blob/970dc8c5f63d7b886a68409493f37d569424f933/laya/agent.py#L603).

@@ -1,0 +1,129 @@
+{
+  "compilation": {
+    "artifacts": {
+      "mixed-state-lengths-000.ttnn": {
+        "bytes": 2692544,
+        "file": "compiled/mixed-state-lengths-000.ttnn",
+        "sha256": "ea8460ee181d10a89d5a07b447cf6cc427a6a1556e58476abdc216bafce6ef0b"
+      },
+      "mixed-state-lengths-000_ttir.mlir": {
+        "bytes": 538660,
+        "file": "compiled/mixed-state-lengths-000_ttir.mlir",
+        "sha256": "f8416dd79c6c9165e65de206d9cb6be3bdd00f35f599a2275d630ab206e396a1"
+      },
+      "mixed-state-lengths-000_ttnn.mlir": {
+        "bytes": 723745,
+        "file": "compiled/mixed-state-lengths-000_ttnn.mlir",
+        "sha256": "0942e212ed05cf327a9414294c1061ac5ba9863c9ea62af2d6adfc9aa9aef19b"
+      }
+    },
+    "call": 0,
+    "case": "mixed-state-lengths",
+    "compilation_status": "COMPILED",
+    "input_shapes": {
+      "attention_mask": [
+        8,
+        56
+      ],
+      "input_ids": [
+        8,
+        56
+      ],
+      "marker_mask": [
+        8,
+        3
+      ],
+      "marker_pos": [
+        8,
+        3
+      ],
+      "qtype": [
+        8
+      ]
+    },
+    "numerical_comparison_performed": false,
+    "physical_acceptance": false
+  },
+  "compilation_attempted": true,
+  "compilation_status": "COMPILED",
+  "compile_only": true,
+  "compile_only_preflight": {
+    "compiler": {
+      "commit": "873c53c4ff84bd91112a1f43e788cfed75aaa914",
+      "version": "1.5.0.dev20260831000501"
+    },
+    "device_nodes_exposed": false,
+    "system_descriptor": {
+      "current_card_inventory": false,
+      "file": "p150-migrated-nightly.ttsys",
+      "kind": "migrated_generic_system_descriptor",
+      "migration": {
+        "allowed_metadata_changes": [
+          "schema_hash"
+        ],
+        "complete_root_roundtrip_equal_except_allowed_metadata": true,
+        "current_card_inventory": false,
+        "descriptor": {
+          "file": "p150-migrated-nightly.ttsys",
+          "sha256": "6028485af0f8c233185b87277f36061c2460db606f14a47bcb8284f5af5f56f3"
+        },
+        "flatbuffers_commit": "fb9afbafc7dfe226b9db54d4923bfb8839635274",
+        "flatc_sha256": "c3366e8b6d82d53c5ec125635e8d00a6cd71e296546f7bad13ce9cca860569b2",
+        "flatc_version": "flatc version 24.3.25",
+        "hardware_queried": false,
+        "kind": "migrated_generic_system_descriptor",
+        "note": "Offline schema migration of upstream generic P150 fixture; not a capture of the current card",
+        "offline_only": true,
+        "old_schema_roundtrip_equal_except_allowed_metadata": true,
+        "original_descriptor_sha256": "655fabe5445624b0c9a6a312b90fb5e9a30a78614e43d331e9d622561e09b5ac",
+        "original_mlir_commit": "464a5f341908d5a3f790e697be5ffa6fd3fb6f32",
+        "original_producer_metadata_preserved": true,
+        "original_schema_hash": "7f252e8a9f2f1850b406e7c18440842ccf8d0c51c47b8747c297e5b6bb8a966f",
+        "physical_acceptance": false,
+        "schema_file_sha256": {
+          "new": {
+            "system_desc.fbs": "b8198760bac728c8437bc9d8dad644722ad4163c17ea57d383eb47dc7a71648b",
+            "types.fbs": "6c3fa6c6277da672b6b3514f1c89ab63e1123fdcd3f23c0f7f76892309afff90",
+            "version.fbs": "e8d00be3a6d4dc46cc7fa64d92f6cfcb88f6c7decddd889d039367c2076d7d15"
+          },
+          "old": {
+            "system_desc.fbs": "b8198760bac728c8437bc9d8dad644722ad4163c17ea57d383eb47dc7a71648b",
+            "types.fbs": "19d0509cb50ac07eb04af6b504601d71f111871addd0ca5bc7e50b20fe4af8e3",
+            "version.fbs": "e8d00be3a6d4dc46cc7fa64d92f6cfcb88f6c7decddd889d039367c2076d7d15"
+          }
+        },
+        "schema_version": 1,
+        "source_tt_xla_commit": "873c53c4ff84bd91112a1f43e788cfed75aaa914",
+        "target_mlir_commit": "e2b21a721955b2b68540d9e6879a215ce3dcfae5",
+        "target_schema_hash": "92f6a8a87b72abd510d53425c6cd90ab2e8ba161928ee94c8bdd6680f51d9cdb"
+      },
+      "migration_provenance_sha256": "94efbbb967aaabde069c779c56fa94758c8465d30a198b946a846ea2bb6ceb2c",
+      "offline_only": true,
+      "sha256": "6028485af0f8c233185b87277f36061c2460db606f14a47bcb8284f5af5f56f3"
+    }
+  },
+  "dtype": "float32",
+  "loaded_state_integrity": {
+    "checked_elements": 421293830,
+    "checked_tensors": 206,
+    "checkpoint_sha256": "891102d372688fc2a094dac56a384bc537b87c63f21f9f3dac0be2b7cbc8d86c",
+    "comparison": "exact_numpy_promotion",
+    "mismatch_tensors": 0,
+    "mismatches": [],
+    "unchecked_nonpersistent_buffers": [
+      "encoder.rotary_emb.full_attention_inv_freq",
+      "encoder.rotary_emb.full_attention_original_inv_freq",
+      "encoder.rotary_emb.sliding_attention_inv_freq",
+      "encoder.rotary_emb.sliding_attention_original_inv_freq"
+    ],
+    "verified": true
+  },
+  "manifest_sha256": "cf9e83ed8b32e6282adde751d4ceb03eaca208b2e02668f23acdf84f29d9e14b",
+  "mode": "tt-compile-only",
+  "note": "Compiler artifacts only; dummy outputs were not read and no inference occurred",
+  "physical_acceptance": false,
+  "reference_sha256": "d1cb5aaaebdc21b5b8c6db1287811fb098659370978e9d1f50e593b329acb085",
+  "schema_version": 1,
+  "status": "COMPILED",
+  "torch_version": "2.11.0+cpu"
+}

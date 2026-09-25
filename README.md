@@ -10,6 +10,7 @@ Implemented foundations:
 - Required platform verifier and reservation hooks, exact request-byte binding,
   runtime/revision/deadline checks, and bounded JSON parsing.
 - Serialized tenant-fair worker with bounded queue costs and cancellation/drain.
+- Optional durable execution journal and receipt outbox with crash/replay checks.
 - Internal decision service composing verified admission, observed timing, response
   validation, model self-test readiness, failure and drain ownership.
 - Explicit CPU reference backend, preserving upstream decision semantics and
@@ -52,7 +53,7 @@ services. JSON schemas alone do not authenticate a tenant. Shared-service ingres
 must supply a verified envelope independently of customer JSON.
 
 See [API contract](docs/api-contract.md), [worker lifecycle](docs/runtime-lifecycle.md),
-[decision service](docs/decision-service.md), [reference capture](docs/reference.md),
+[decision service](docs/decision-service.md), [execution journal](docs/execution-journal.md), [reference capture](docs/reference.md),
 [compiler spike](docs/compiler-spike.md), and [loaded-state integrity](docs/integrity.md).
 The upstream model is [Convai Innovations Laya](https://github.com/NandhaKishorM/laya).
 Weights remain external and are not included here.
@@ -68,8 +69,9 @@ part of this repository's default execution flow.
 Current local evidence: two fresh-process CPU captures passed the exact loaded
 checkpoint-state gate and matched all captured tensors and answers. Strict
 PyTorch export passed all five model calls against that reference. These results
-validate the CPU baseline and export experiment. The single-option FP32 graph
-also compiled offline for the pinned P150 descriptor; physical TT execution and
+validate the CPU baseline and export experiment. Four of five FP32-source model calls
+compiled offline for the pinned P150 descriptor; the fifth failed loaded-state
+integrity before compilation. Lowered IR includes BF16. Physical TT execution and
 the deployed shared-service path remain outstanding.
 
 
