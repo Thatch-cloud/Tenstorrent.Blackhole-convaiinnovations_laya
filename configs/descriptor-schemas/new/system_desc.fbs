@@ -1,0 +1,16 @@
+include "ttmlir/Target/Common/types.fbs";
+include "ttmlir/Target/Common/version.fbs";
+
+namespace tt.target;
+
+table SystemDescRoot {
+  version: tt.target.Version;
+  schema_hash: string;
+  ttmlir_git_hash: string;
+  product_identifier: string;
+  system_desc: tt.target.SystemDesc;
+}
+
+root_type SystemDescRoot;
+file_identifier "TTSY";
+file_extension "ttsys";

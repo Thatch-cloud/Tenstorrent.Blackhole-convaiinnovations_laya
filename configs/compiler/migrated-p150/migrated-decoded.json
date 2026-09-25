@@ -1,0 +1,173 @@
+{
+  "product_identifier": "unknown",
+  "schema_hash": "92f6a8a87b72abd510d53425c6cd90ab2e8ba161928ee94c8bdd6680f51d9cdb",
+  "system_desc": {
+    "chip_capabilities": [
+      "HostMMIO"
+    ],
+    "chip_channels": [],
+    "chip_coords": [
+      {
+        "rack": 0,
+        "shelf": 0,
+        "x": 0,
+        "y": 0
+      }
+    ],
+    "chip_desc_indices": [
+      0
+    ],
+    "chip_descs": [
+      {
+        "arch": "Blackhole",
+        "coord_translation_offsets": {
+          "x": 1,
+          "y": 2
+        },
+        "dram_bank_to_logical_worker_noc0": [
+          {
+            "x": 0,
+            "y": 9
+          },
+          {
+            "x": 0,
+            "y": 0
+          },
+          {
+            "x": 0,
+            "y": 7
+          },
+          {
+            "x": 0,
+            "y": 3
+          },
+          {
+            "x": 6,
+            "y": 9
+          },
+          {
+            "x": 6,
+            "y": 1
+          },
+          {
+            "x": 6,
+            "y": 6
+          },
+          {
+            "x": 6,
+            "y": 4
+          }
+        ],
+        "dram_bank_to_logical_worker_noc1": [
+          {
+            "x": 0,
+            "y": 9
+          },
+          {
+            "x": 0,
+            "y": 0
+          },
+          {
+            "x": 0,
+            "y": 7
+          },
+          {
+            "x": 0,
+            "y": 3
+          },
+          {
+            "x": 6,
+            "y": 9
+          },
+          {
+            "x": 6,
+            "y": 1
+          },
+          {
+            "x": 6,
+            "y": 6
+          },
+          {
+            "x": 6,
+            "y": 4
+          }
+        ],
+        "dram_channel_size": 4278190080,
+        "dram_grid_size": {
+          "x": 8,
+          "y": 1
+        },
+        "dram_unreserved_base": 5848704,
+        "dram_unreserved_end": 4276523520,
+        "dst_physical_size_tiles": 16,
+        "erisc_l1_unreserved_base": 87872,
+        "grid_size": {
+          "x": 11,
+          "y": 10
+        },
+        "l1_size": 1572864,
+        "l1_unreserved_base": 111104,
+        "noc_dram_address_align_bytes": 64,
+        "noc_l1_address_align_bytes": 16,
+        "num_cbs": 64,
+        "num_compute_threads": 1,
+        "num_datamovement_threads": 2,
+        "num_dram_channels": 8,
+        "pcie_address_align_bytes": 64,
+        "supported_data_types": [
+          "Float32",
+          "Float16",
+          "BFloat16",
+          "BFP_Float8",
+          "BFP_BFloat8",
+          "BFP_Float4",
+          "BFP_BFloat4",
+          "BFP_Float2",
+          "BFP_BFloat2",
+          "UInt32",
+          "UInt16",
+          "UInt8",
+          "Int32"
+        ],
+        "supported_tile_sizes": [
+          {
+            "x": 16,
+            "y": 4
+          },
+          {
+            "x": 16,
+            "y": 16
+          },
+          {
+            "x": 16,
+            "y": 32
+          },
+          {
+            "x": 32,
+            "y": 4
+          },
+          {
+            "x": 32,
+            "y": 16
+          },
+          {
+            "x": 32,
+            "y": 32
+          }
+        ]
+      }
+    ],
+    "cpu_descs": [
+      {
+        "role": "Host",
+        "target_triple": "x86_64-pc-linux"
+      }
+    ]
+  },
+  "ttmlir_git_hash": "464a5f341908d5a3f790e697be5ffa6fd3fb6f32",
+  "version": {
+    "major": 0,
+    "minor": 0,
+    "patch": 3758
+  }
+}

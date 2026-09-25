@@ -10,3 +10,5 @@ evidence/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eo
 
 .gitattributes text eol=lf
 .gitignore text eol=lf
+configs/descriptor-schemas/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+configs/compiler/migrated-p150/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol

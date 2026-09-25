@@ -68,5 +68,13 @@ part of this repository's default execution flow.
 Current local evidence: two fresh-process CPU captures passed the exact loaded
 checkpoint-state gate and matched all captured tensors and answers. Strict
 PyTorch export passed all five model calls against that reference. These results
-validate the CPU baseline and export experiment only; TT compilation/execution
-and the deployed shared-service path remain outstanding.
+validate the CPU baseline and export experiment. The single-option FP32 graph
+also compiled offline for the pinned P150 descriptor; physical TT execution and
+the deployed shared-service path remain outstanding.
+
+
+CPU contract CI covers Python 3.11 and 3.12, validates the committed reference
+index and every captured tensor, and checks schema resources from an isolated
+wheel installation. It does not download model weights or run the accelerator.
+The workflow is defined in `.github/workflows/cpu-contracts.yml`; local checks
+and a GitHub Actions run remain distinct evidence.

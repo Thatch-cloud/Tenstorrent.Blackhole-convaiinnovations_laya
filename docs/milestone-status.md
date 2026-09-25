@@ -8,7 +8,7 @@ acceptance. It is not a claim that the complete single-P150A service is ready.
 | Pinned English source and model | Immutable source/checkpoint lock plus SHA256 for all five checkpoint assets | Reproduce under accelerator toolchain |
 | Reproducible CPU reference | Two independent processes pass exact loaded-state checks; 35 tensors and every answer match exactly | Derived rotary buffers and representative application dataset coverage |
 | Typed semantics and action outputs | Real fixtures cover choice, score, noul, single-option, mixed widths, batching, truncation, empty questions and temperature buckets | Physical device probability/decision parity, approved tolerances |
-| Strict full-model export | Five actual CPU graphs export and match the checked baseline with zero observed output error | Offline lowering attempted but blocked by system-descriptor schema mismatch; no TT execution result yet |
+| Strict full-model export | Five actual CPU graphs export and match the checked baseline with zero observed output error | Single-option FP32 graph compiled offline after verified descriptor migration; remaining shapes, BF16 and physical TT execution are unverified |
 | Shared runtime admission | Exact-byte payload binding, injected grant verifier and durable reservation hook, bounded payload/token/work admission | Real platform credential issuer and ledger implementation |
 | Serialized shared worker | Tenant rotation, queue budgets, deadlines, cancellation and drain ownership tests | Host crash recovery and device claims |
 | Runtime composition | Actual CPU backend through admission/worker/response path with two tenants using identical IDs | Production startup and deployment wiring |

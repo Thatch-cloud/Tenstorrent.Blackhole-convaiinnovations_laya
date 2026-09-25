@@ -223,6 +223,7 @@ def test_compile_only_descriptor_and_build_guard(tmp_path,monkeypatch):
         result=spike.compile_only_preflight(path,digest,spike.OFFLINE_NIGHTLY_COMMIT)
         compiler.assert_called_once_with(spike.OFFLINE_NIGHTLY_COMMIT)
         assert result["system_descriptor"]["sha256"]==digest
+        assert result["system_descriptor"]["kind"] == "upstream_generic_system_descriptor"
         assert not result["device_nodes_exposed"]
         with pytest.raises(ValueError,match="pinned SHA256"):
             spike.compile_only_preflight(path,"0"*64)
@@ -256,3 +257,55 @@ def test_compile_only_cli_does_not_report_execution(tmp_path,monkeypatch):
     assert "graph_executed" not in report
     assert "device_execution" not in report
     assert not report["physical_acceptance"]
+
+
+def migrated_descriptor_fixture(tmp_path, monkeypatch):
+    path = tmp_path / "p150-migrated-nightly.ttsys"
+    path.write_bytes(b"derived descriptor unit fixture")
+    digest = spike.sha256_file(path)
+    monkeypatch.setattr(spike, "MIGRATED_P150_SHA256", digest)
+    provenance = {"kind": "migrated_generic_system_descriptor", "offline_only": True,
+                  "current_card_inventory": False, "hardware_queried": False,
+                  "source_tt_xla_commit": spike.OFFLINE_NIGHTLY_COMMIT,
+                  "descriptor": {"file": path.name, "sha256": digest}}
+    provenance_path = tmp_path / "provenance.json"
+    monkeypatch.setattr(spike, "MIGRATED_P150_PROVENANCE_SHA256", write_json(provenance_path, provenance))
+    monkeypatch.setattr(spike.platform, "system", lambda: "Linux")
+    monkeypatch.delenv("TT_VISIBLE_DEVICES", raising=False)
+    monkeypatch.delenv("TT_COMPILE_ONLY_SYSTEM_DESC", raising=False)
+    return path, digest, provenance_path, provenance
+
+
+def test_migrated_descriptor_requires_reviewed_nightly_and_provenance(tmp_path, monkeypatch):
+    path, digest, _, _ = migrated_descriptor_fixture(tmp_path, monkeypatch)
+    with patch.object(spike.Path, "glob", return_value=[]), patch.object(spike, "compiler_installation", return_value={}):
+        result = spike.compile_only_preflight(path, digest, spike.OFFLINE_NIGHTLY_COMMIT)
+        metadata = result["system_descriptor"]
+        assert metadata["kind"] == "migrated_generic_system_descriptor"
+        assert metadata["offline_only"] is True
+        assert metadata["current_card_inventory"] is False
+        assert "upstream_commit" not in metadata
+        assert metadata["migration_provenance_sha256"] == spike.MIGRATED_P150_PROVENANCE_SHA256
+        with pytest.raises(spike.Blocked, match="exact offline nightly"):
+            spike.compile_only_preflight(path, digest, spike.TT_XLA_AUDITED_COMMIT)
+
+
+def test_migrated_descriptor_rejects_changed_or_missing_provenance(tmp_path, monkeypatch):
+    path, digest, provenance_path, provenance = migrated_descriptor_fixture(tmp_path, monkeypatch)
+    provenance["hardware_queried"] = True
+    write_json(provenance_path, provenance)
+    with patch.object(spike.Path, "glob", return_value=[]):
+        with pytest.raises(ValueError, match="hash mismatch"):
+            spike.compile_only_preflight(path, digest, spike.OFFLINE_NIGHTLY_COMMIT)
+        provenance_path.unlink()
+        with pytest.raises(ValueError, match="missing"):
+            spike.compile_only_preflight(path, digest, spike.OFFLINE_NIGHTLY_COMMIT)
+
+
+def test_migrated_descriptor_rejects_incorrect_identity_even_with_review_pin(tmp_path, monkeypatch):
+    path, digest, provenance_path, provenance = migrated_descriptor_fixture(tmp_path, monkeypatch)
+    provenance["descriptor"]["file"] = "another.ttsys"
+    monkeypatch.setattr(spike, "MIGRATED_P150_PROVENANCE_SHA256", write_json(provenance_path, provenance))
+    with patch.object(spike.Path, "glob", return_value=[]):
+        with pytest.raises(ValueError, match="provenance identity"):
+            spike.compile_only_preflight(path, digest, spike.OFFLINE_NIGHTLY_COMMIT)

@@ -25,6 +25,8 @@ TT_XLA_AUDITED_COMMIT = "3bf6e4201f008fdf5a0ce5d244bc83ad155ee328"
 OFFLINE_NIGHTLY_COMMIT = "873c53c4ff84bd91112a1f43e788cfed75aaa914"
 OFFLINE_NIGHTLY_VERSION = "1.5.0.dev20260831000501"
 P150_DESCRIPTOR_SHA256 = "655fabe5445624b0c9a6a312b90fb5e9a30a78614e43d331e9d622561e09b5ac"
+MIGRATED_P150_SHA256 = "6028485af0f8c233185b87277f36061c2460db606f14a47bcb8284f5af5f56f3"
+MIGRATED_P150_PROVENANCE_SHA256 = "94efbbb967aaabde069c779c56fa94758c8465d30a198b946a846ea2bb6ceb2c"
 
 class Blocked(RuntimeError):
     pass
@@ -176,17 +178,35 @@ def compile_only_preflight(descriptor_path, descriptor_sha256, toolchain_commit=
         raise Blocked("Compile-only must run without exposed Tenstorrent device nodes")
     if os.environ.get("TT_VISIBLE_DEVICES"):
         raise Blocked("Compile-only requires TT_VISIBLE_DEVICES unset")
-    if not descriptor_path or descriptor_sha256 != P150_DESCRIPTOR_SHA256:
+    if not descriptor_path or descriptor_sha256 not in (P150_DESCRIPTOR_SHA256, MIGRATED_P150_SHA256):
         raise ValueError("Require the audited P150 descriptor and its pinned SHA256")
     path = Path(descriptor_path).resolve()
     if not path.is_file() or sha256_file(path) != descriptor_sha256:
         raise ValueError("P150 descriptor file hash mismatch")
+    metadata = {"file": path.name, "sha256": descriptor_sha256,
+                "offline_only": True, "current_card_inventory": False}
+    if descriptor_sha256 == MIGRATED_P150_SHA256:
+        if toolchain_commit != OFFLINE_NIGHTLY_COMMIT:
+            raise Blocked("Migrated descriptor is audited only for the exact offline nightly toolchain")
+        provenance_path = checked_file(path.parent, "provenance.json", MIGRATED_P150_PROVENANCE_SHA256)
+        provenance = json.loads(provenance_path.read_text(encoding="utf-8"))
+        if (provenance.get("kind") != "migrated_generic_system_descriptor"
+                or provenance.get("offline_only") is not True
+                or provenance.get("current_card_inventory") is not False
+                or provenance.get("hardware_queried") is not False
+                or provenance.get("source_tt_xla_commit") != toolchain_commit
+                or provenance.get("descriptor") != {"file": path.name, "sha256": descriptor_sha256}):
+            raise ValueError("Migrated descriptor provenance identity mismatch")
+        metadata.update(kind="migrated_generic_system_descriptor",
+                        migration_provenance_sha256=MIGRATED_P150_PROVENANCE_SHA256,
+                        migration=provenance)
+    else:
+        metadata.update(kind="upstream_generic_system_descriptor", upstream_commit=toolchain_commit)
     inherited = os.environ.get("TT_COMPILE_ONLY_SYSTEM_DESC")
     if inherited is not None and Path(inherited).resolve() != path:
         raise Blocked("Inherited compile-only descriptor differs from explicit pinned descriptor")
     return {"compiler": compiler_installation(toolchain_commit),
-            "system_descriptor": {"file": path.name, "sha256": descriptor_sha256,
-                                  "upstream_commit": toolchain_commit},
+            "system_descriptor": metadata,
             "device_nodes_exposed": False}
 
 def select_compile_call(reference, case_id, call_index):
