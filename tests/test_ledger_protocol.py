@@ -29,7 +29,7 @@ def encode(context=None, runtime=None, rows=2, tokens=17):
 def test_producer_matches_portable_fixture_without_mutating_inputs():
     context, runtime = copy.deepcopy(CONTEXT), copy.deepcopy(RUNTIME)
     payload = encode(MappingProxyType(context), MappingProxyType(runtime))
-    assert payload == FIXTURE.read_bytes().rstrip(b"\n")
+    assert payload == FIXTURE.read_bytes().rstrip(b"\r\n")
     schema = load_schema("reservation-consumption")
     Draft202012Validator.check_schema(schema)
     Draft202012Validator(schema).validate(json.loads(payload))
