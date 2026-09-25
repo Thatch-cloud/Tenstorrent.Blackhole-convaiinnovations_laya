@@ -2,7 +2,7 @@
 import json
 from importlib.resources import files
 
-_NAMES = frozenset(("decision-request", "decision-response", "admission-context", "execution-receipt"))
+_NAMES = frozenset(("decision-request", "decision-response", "admission-context", "execution-receipt", "reservation-consumption"))
 
 def load_schema(name: str) -> dict:
     if name not in _NAMES:
