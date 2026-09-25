@@ -36,6 +36,11 @@ processed token count. Queue rejection and pre-start cancellation produce
 
 A process crash can leave `admitted` or `running` records. `unresolved()` exposes
 these for reconciliation; neither is a completed receipt or a billable usage fact.
+The service calls `check_startup()` before its model self-test. Any unresolved row
+blocks startup and leaves readiness failed, without changing journal records.
+The supervisor must reconcile and fence the old owner before creating a replacement
+service. This guard is not a cross-process lease; an empty journal cannot prove
+exclusive device ownership. Unacknowledged terminal receipts do not block startup.
 `running` means the durable start fence passed: a crash may occur before the actual
 model call, during execution, or after execution but before completion commit.
 No automatic replay, quota release or conversion to completed usage occurs. This

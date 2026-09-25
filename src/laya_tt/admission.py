@@ -14,6 +14,7 @@ from typing import Any
 from jsonschema import Draft202012Validator
 from jsonschema.exceptions import ValidationError
 
+MAX_REQUEST_BYTES = 2 * 1024 * 1024
 
 class AdmissionRejected(ValueError):
     """Safe rejection reason without request, credential, or verifier details."""
@@ -60,7 +61,7 @@ def _constant(_value):
 def _parse_request(raw: bytes) -> dict:
     if type(raw) is not bytes:
         raise InvalidRequest("request must contain bytes")
-    if len(raw) > 2 * 1024 * 1024:
+    if len(raw) > MAX_REQUEST_BYTES:
         raise RequestTooLarge("request byte limit exceeded")
     try:
         text = raw.decode("utf-8", errors="strict")
@@ -168,6 +169,27 @@ class AdmissionAdapter:
             Draft202012Validator.check_schema(schema)
             validators.append(Draft202012Validator(schema))
         self._request_validator, self._context_validator = validators
+
+    def readback_limits(self) -> dict:
+        """Configured admission ceilings, excluding per-grant tenant reservations.
+
+        The built-in native schema is recognized structurally. A custom schema
+        without these bounds cannot silently advertise the built-in limits.
+        """
+        questions = self._request_validator.schema["properties"]["questions"]
+        variants = questions["additionalProperties"]["oneOf"]
+        types = [v["properties"]["type"]["const"] for v in variants]
+        if types != ["choice", "score", "noul"]:
+            raise ValueError("unsupported readback schema structure")
+        choice = variants[0]["properties"]["criteria"]["oneOf"]
+        candidates = min(choice[0]["maxProperties"], choice[1]["maxItems"],
+                         variants[1]["properties"]["criteria"]["maxItems"])
+        rows = min(self._max_rows, questions["maxProperties"])
+        if any(type(v) is not int or v <= 0 for v in (rows, candidates)):
+            raise ValueError("invalid schema readback bounds")
+        return {"max_request_bytes": MAX_REQUEST_BYTES, "max_question_rows": rows,
+                "max_candidates_per_question": candidates,
+                "max_encoded_tokens": self._max_tokens}
 
     def _time_budget(self, context):
         now = self._wall() * 1000

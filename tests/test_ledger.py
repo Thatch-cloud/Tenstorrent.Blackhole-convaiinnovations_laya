@@ -56,6 +56,22 @@ class JournalTests(unittest.TestCase):
         reopened.admitted(dict(self.context, tenant_id="other"), 1, 5, asdict(RUNTIME))
         self.assertEqual(len(reopened.unresolved()), 2)
 
+    def test_startup_guard_preserves_unresolved_work_after_reopen(self):
+        self.journal.check_startup()
+        self.admit()
+        for state in ("admitted", "running"):
+            if state == "running":
+                self.journal.started(self.context, 0)
+            reopened = ExecutionJournal(self.path)
+            before = reopened.unresolved()
+            with self.assertRaisesRegex(JournalConflict, "recovery is required"):
+                reopened.check_startup()
+            self.assertEqual(reopened.unresolved(), before)
+            self.assertEqual(reopened.pending_receipts(), [])
+        self.journal.failed(self.context, 1)
+        ExecutionJournal(self.path).check_startup()
+        self.assertEqual(len(self.journal.pending_receipts()), 1)
+
     def test_start_is_once_and_exact_context_bound(self):
         self.admit()
         with self.assertRaises(JournalConflict):
@@ -154,9 +170,12 @@ os._exit(73)
             with self.assertRaises(JournalReplay):
                 reopened.admitted(self.context, 1, 5, asdict(RUNTIME))
             if stage == "completed":
+                reopened.check_startup()
                 self.assertEqual(reopened.unresolved(), [])
                 self.assertEqual(json.loads(reopened.pending_receipts()[0].payload_json)["outcome"], "completed")
             else:
+                with self.assertRaises(JournalConflict):
+                    reopened.check_startup()
                 self.assertEqual(reopened.unresolved()[0]["state"], stage)
                 self.assertEqual(reopened.pending_receipts(), [])
 
@@ -171,16 +190,31 @@ class JournalServiceTests(unittest.TestCase):
             "questions":{"q":{"type":"noul","instructions":"private-question"}}}).encode()
         self.context["request_sha256"] = hashlib.sha256(self.raw).hexdigest()
 
-    def service(self, journal, backend):
+    def service(self, journal, backend, *, start=True):
         admission = AdmissionAdapter(verify_grant=lambda grant: self.context,
             prepare=lambda request: PreparedInput(1,5,request["state"]),
             consume_reservation=lambda *args: True,  # Explicit test authority fixture.
             checkpoint_revision=RUNTIME.checkpoint_revision,
             runtime_generation=RUNTIME.runtime_generation, policy_revision="policy")
         service = DecisionService(admission=admission,backend=backend,runtime=RUNTIME,receipt_sink=journal)
-        service.start(lambda: True)
+        if start:
+            service.start(lambda: True)
         self.addCleanup(lambda: service.drain(timeout=3))
         return service
+
+    def test_restart_guard_prevents_model_self_test_before_reconciliation(self):
+        journal = ExecutionJournal(self.path)
+        journal.admitted(self.context, 1, 5, asdict(RUNTIME))
+        journal.started(self.context, 0)
+        calls = []
+        service = self.service(ExecutionJournal(self.path), lambda _: calls.append("execute"), start=False)
+        with self.assertRaises(JournalConflict):
+            service.start(lambda: calls.append("self-test") or True)
+        self.assertEqual(calls, [])
+        self.assertEqual(service.readiness()["state"], "failed")
+        self.assertFalse(service.readiness()["ready"])
+        self.assertEqual(journal.unresolved()[0]["state"], "running")
+        self.assertEqual(journal.pending_receipts(), [])
 
     @staticmethod
     def output(payload):

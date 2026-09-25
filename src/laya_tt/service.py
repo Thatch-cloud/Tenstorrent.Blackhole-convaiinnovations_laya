@@ -19,6 +19,7 @@ from .admission import AdmissionAdapter, AdmittedRequest
 from .contracts import load_schema
 from .ledger import JournalReplay
 from .reference import validate_answers
+from .readback import BackendReadback, ReadbackUnavailable
 from .worker import DeadlineExceeded, SerializedWorker
 
 
@@ -66,12 +67,15 @@ class DecisionService:
     """
     def __init__(self, *, admission: AdmissionAdapter, backend: Callable,
                  runtime: RuntimeIdentity, schema_dir: Path | None = None, worker_limits=None,
-                 max_admitting: int = 8, receipt_sink=None):
+                 max_admitting: int = 8, receipt_sink=None, backend_readback=None):
         if type(max_admitting) is not int or max_admitting <= 0:
             raise ValueError("max_admitting must be a positive integer")
         self._admission, self._backend, self.runtime = admission, backend, runtime
+        if backend_readback is not None and not callable(backend_readback):
+            raise ValueError("backend readback must be callable")
+        self._backend_readback = backend_readback
         if receipt_sink is not None and not all(callable(getattr(receipt_sink, name, None)) for name in
-                ("admitted", "started", "completed", "failed", "not_started", "delivery")):
+                ("check_startup", "admitted", "started", "completed", "failed", "not_started", "delivery")):
             raise ValueError("receipt sink must implement the execution journal contract")
         self._receipts = receipt_sink
         schema = (load_schema("decision-response") if schema_dir is None else
@@ -93,6 +97,37 @@ class DecisionService:
                     "runtime_generation": self.runtime.runtime_generation,
                     "backend": self.runtime.backend}
 
+    def runtime_readback(self) -> dict:
+        """Return runtime facts; the trusted collector stamps observation time.
+
+        This never starts the model or grants admission. Bootstrap must supply
+        a provider backed by the actual loaded backend, not desired launch flags.
+        """
+        try:
+            if self._backend_readback is None:
+                raise ReadbackUnavailable()
+            facts = self._backend_readback()
+            if not isinstance(facts, BackendReadback) or facts.backend != self.runtime.backend:
+                raise ReadbackUnavailable()
+            limits = self._admission.readback_limits()
+            for name in ("max_question_rows", "max_candidates_per_question", "max_encoded_tokens"):
+                limits[name] = min(limits[name], getattr(facts, name))
+            limits["max_sequence_tokens"] = facts.max_sequence_tokens
+            limits["max_head_tokens"] = facts.max_head_tokens
+            limits["max_encoded_tokens"] = min(limits["max_encoded_tokens"],
+                limits["max_question_rows"] * limits["max_sequence_tokens"])
+            identity = asdict(self.runtime)
+            if any(not value.strip() or len(value.encode()) > 256 or
+                   any(ord(c) < 32 or 127 <= ord(c) <= 159 for c in value)
+                   for value in identity.values()):
+                raise ReadbackUnavailable()
+            with self._cv:
+                state = self._state
+            return {"contract_version": 1, **identity, "precision": facts.precision,
+                    "state": state, "question_types": list(facts.question_types), "limits": limits}
+        except Exception:
+            raise ReadbackUnavailable("runtime readback unavailable") from None
+
     def start(self, self_test: Callable[[], bool]) -> None:
         """Test the loaded model before admission; a TCP probe is insufficient.
 
@@ -107,6 +142,8 @@ class DecisionService:
                 raise ServiceNotReady("startup is not available")
             self._booting = True
         try:
+            if self._receipts is not None:
+                self._receipts.check_startup()
             if self_test() is not True:
                 raise ServiceNotReady("model self-test failed")
             with self._cv:

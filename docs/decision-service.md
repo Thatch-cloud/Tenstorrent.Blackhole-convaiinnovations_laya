@@ -65,3 +65,8 @@ admission, execution and receipt outcomes, including cancelled delivery and proc
 crashes. It does not implement the external reservation authority or authenticated
 receipt receiver. Without an explicitly configured receipt sink, this service
 retains the in-memory behavior described above.
+
+When the journal is configured, startup checks for unresolved prior execution
+before invoking the model self-test. Recovery failures leave readiness failed.
+Optional [runtime readback](runtime-readback.md) requires an explicit observed
+backend provider and never marks a service ready.

@@ -64,3 +64,8 @@ admission, execution and receipt outcomes, including cancelled delivery and proc
 crashes. It does not implement the external reservation authority or authenticated
 receipt receiver. Without an explicitly configured receipt sink, this service
 retains the in-memory behavior described above.
+
+Runtime collectors can use `GET /internal/decision-runtime`; see
+[runtime readback](runtime-readback.md) for observed identity, precision, limits
+and lifecycle semantics. A successful readback does not establish readiness;
+collectors add their observation time and validate the authorized generation.

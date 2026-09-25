@@ -8,14 +8,15 @@ from concurrent.futures import CancelledError as FutureCancelled
 import json
 import threading
 
-from .admission import AdmissionRejected, InvalidRequest, PreparationFailed, RequestTooLarge
+from .admission import AdmissionRejected, InvalidRequest, PreparationFailed, RequestTooLarge, MAX_REQUEST_BYTES
+from .readback import ReadbackUnavailable
 from .ledger import JournalReplay
 from .service import AdmissionCapacityExceeded, ServiceNotReady
 from .worker import DeadlineExceeded, DuplicateRequest, QueueFull, WorkerClosed
 
 
 GRANT_HEADER = b"x-thatch-admission-grant"
-MAX_BODY_BYTES = 2 * 1024 * 1024
+MAX_BODY_BYTES = MAX_REQUEST_BYTES
 MAX_GRANT_HEADER_BYTES = 16384
 
 
@@ -143,6 +144,14 @@ class DecisionASGI:
         if scope["type"] != "http":
             raise ValueError("DecisionASGI supports HTTP scopes only")
         path, method = scope.get("path"), scope.get("method")
+        if path == "/internal/decision-runtime":
+            if method != "GET":
+                return await self._error(send, 405, "method_not_allowed", [(b"allow", b"GET")])
+            try:
+                observed = self._service.runtime_readback()
+            except ReadbackUnavailable:
+                return await self._error(send, 503, "runtime_readback_unavailable")
+            return await self._send(send, 200, observed)
         if path in ("/healthz", "/readyz"):
             if method != "GET":
                 return await self._error(send, 405, "method_not_allowed", [(b"allow", b"GET")])

@@ -230,6 +230,19 @@ class ExecutionJournal:
                 raise JournalConflict("receipt acknowledgment does not match persisted payload")
             db.execute("UPDATE receipts SET acknowledged=1 WHERE receipt_id=?", (receipt_id,))
 
+    def check_startup(self):
+        """Refuse model startup while earlier execution needs reconciliation.
+
+        This read-only guard is not a device lease or a cross-process startup
+        lock. The supervisor still fences the previous owner before launching.
+        """
+        with self._connect() as db:
+            pending = db.execute(
+                "SELECT 1 FROM executions WHERE state IN ('admitted','running') LIMIT 1"
+            ).fetchone()
+        if pending is not None:
+            raise JournalConflict("execution recovery is required before startup")
+
     def unresolved(self):
         """Return crash-reconciliation candidates; never label them completed usage."""
         with self._connect() as db:

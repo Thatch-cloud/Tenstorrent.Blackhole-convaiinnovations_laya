@@ -4,6 +4,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from dataclasses import dataclass
 import json
+from itertools import chain
 import os
 from pathlib import Path
 import sys
@@ -13,6 +14,7 @@ import warnings
 
 from .admission import PreparedInput, RequestTooLarge
 from .reference import checkpoint_files, validate_manifest
+from .readback import BackendReadback, ReadbackUnavailable
 
 
 class InputWouldTruncate(RequestTooLarge):
@@ -97,6 +99,18 @@ class CpuReferenceBackend:
         self._agent, self._common, self._torch = agent, common, torch_module
         self._owner = object()
         self.initialization_warnings = tuple(initialization_warnings)
+        self._bootstrap_verified = False
+
+    def readback(self) -> BackendReadback:
+        """Available only after pinned factory load and loaded-state verification."""
+        agent, torch = self._agent, self._torch
+        if (not self._bootstrap_verified or agent.device.type != "cpu"
+                or agent.amp_enabled or agent._fast is not None
+                or any(p.device.type != "cpu" or (p.is_floating_point() and p.dtype != torch.float32)
+                       for p in chain(agent.model.parameters(), agent.model.buffers()))):
+            raise ReadbackUnavailable("CPU reference bootstrap/mode is not verified")
+        return BackendReadback("cpu-reference", "float32", ("choice", "score", "noul"),
+                               64, 64, 512, 192, 32768)
 
     def prepare(self, request: Mapping) -> PreparedInput:
         request = _thaw(request)
@@ -185,5 +199,7 @@ def load_cpu_backend(manifest_path: Path, *, root: Path) -> CpuReferenceBackend:
     agent.model.float().eval()
     from .integrity import verify_loaded_state
     verify_loaded_state(agent.model, checkpoint, expected_sha256=manifest["checkpoint"]["files"]["model.safetensors"])
-    return CpuReferenceBackend(agent, common, torch,
-                               initialization_warnings=[str(w.message) for w in caught])
+    backend = CpuReferenceBackend(agent, common, torch,
+                                  initialization_warnings=[str(w.message) for w in caught])
+    backend._bootstrap_verified = True
+    return backend
