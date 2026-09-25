@@ -33,7 +33,7 @@ class ContractTests(unittest.TestCase):
         }
 
     def test_all_schemas_are_valid(self):
-        for name in ('decision-request', 'decision-response', 'admission-context'):
+        for name in ('decision-request', 'decision-response', 'admission-context', 'execution-receipt'):
             validator(name)
 
     def test_all_upstream_question_types(self):

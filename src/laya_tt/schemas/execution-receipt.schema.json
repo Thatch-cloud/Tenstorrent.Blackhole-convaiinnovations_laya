@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:thatch:laya:execution-receipt:v1",
+  "title": "execution-receipt",
+  "description": "Immutable host execution evidence. Authentication, reservation matching and durable acknowledgment are receiver responsibilities. No price or billing claim.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "outcome", "tenant_id", "request_id", "key_id", "execution_attempt_id", "reservation_id", "usage_event_id", "request_sha256", "policy_revision", "started_at_unix_ms", "occurred_at_unix_ms", "runtime", "observation"],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "outcome": {"enum": ["completed", "failed", "not_started"]},
+    "tenant_id": {"$ref": "#/$defs/identity"},
+    "request_id": {"$ref": "#/$defs/identity"},
+    "key_id": {"$ref": "#/$defs/identity"},
+    "execution_attempt_id": {"$ref": "#/$defs/identity"},
+    "reservation_id": {"$ref": "#/$defs/identity"},
+    "usage_event_id": {"$ref": "#/$defs/identity"},
+    "request_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "policy_revision": {"$ref": "#/$defs/identity"},
+    "started_at_unix_ms": {"anyOf": [{"$ref": "#/$defs/timestamp"}, {"type": "null"}]},
+    "occurred_at_unix_ms": {"$ref": "#/$defs/timestamp"},
+    "runtime": {"$ref": "#/$defs/runtime"},
+    "observation": {"type": "object"}
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "outcome": {"const": "completed"},
+        "started_at_unix_ms": {"$ref": "#/$defs/timestamp"},
+        "observation": {
+          "type": "object", "additionalProperties": false,
+          "required": ["requests", "question_rows", "encoded_tokens", "output_tokens", "queue_ms", "execution_ms"],
+          "properties": {
+            "requests": {"const": 1},
+            "question_rows": {"type": "integer", "minimum": 1, "maximum": 64},
+            "encoded_tokens": {"type": "integer", "minimum": 1, "maximum": 32768},
+            "output_tokens": {"const": 0},
+            "queue_ms": {"$ref": "#/$defs/duration"},
+            "execution_ms": {"$ref": "#/$defs/duration"}
+          }
+        }
+      }
+    },
+    {
+      "properties": {
+        "outcome": {"const": "failed"},
+        "started_at_unix_ms": {"$ref": "#/$defs/timestamp"},
+        "observation": {
+          "type": "object", "additionalProperties": false,
+          "required": ["queue_ms", "execution_ms"],
+          "properties": {
+            "queue_ms": {"$ref": "#/$defs/duration"},
+            "execution_ms": {"$ref": "#/$defs/duration"}
+          }
+        }
+      }
+    },
+    {
+      "properties": {
+        "outcome": {"const": "not_started"},
+        "started_at_unix_ms": {"type": "null"},
+        "observation": {
+          "type": "object", "additionalProperties": false, "required": ["reason"],
+          "properties": {"reason": {"enum": ["queue_rejected", "cancelled", "expired", "runtime_failed"]}}
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "identity": {"type": "string", "minLength": 1, "maxLength": 128},
+    "timestamp": {"type": "integer", "minimum": 1, "maximum": 18446744073709551615},
+    "duration": {"type": "integer", "minimum": 0, "maximum": 18446744073709551615},
+    "runtime": {
+      "type": "object", "additionalProperties": false,
+      "required": ["model", "checkpoint_revision", "runtime_revision", "runtime_generation", "backend"],
+      "properties": {
+        "model": {"const": "laya-english"},
+        "checkpoint_revision": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "runtime_revision": {"$ref": "#/$defs/identity"},
+        "runtime_generation": {"$ref": "#/$defs/identity"},
+        "backend": {"enum": ["cpu-reference", "tt-blackhole"]}
+      }
+    }
+  }
+}

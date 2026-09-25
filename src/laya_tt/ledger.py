@@ -46,6 +46,7 @@ class ExecutionJournal:
             raise ValueError("execution journal requires an explicit durable path")
         self.path = Path(path).resolve()
         self._validator = Draft202012Validator(load_schema("admission-context"))
+        self._receipt_validator = Draft202012Validator(load_schema("execution-receipt"))
         with self._connect() as db:
             db.execute("PRAGMA journal_mode=WAL")
             db.execute("BEGIN IMMEDIATE")
@@ -150,6 +151,10 @@ class ExecutionJournal:
             "policy_revision": context["policy_revision"],
             "started_at_unix_ms": row["started_at_ms"], "occurred_at_unix_ms": occurred_at,
             "runtime": runtime, "observation": observation}
+        # Validate before either terminal state or outbox evidence commits. A
+        # contract failure retains unresolved work for explicit reconciliation.
+        if not self._receipt_validator.is_valid(payload):
+            raise JournalConflict("execution receipt violates the wire contract")
         encoded = _json(payload)
         if existing is not None:
             if existing["payload_json"] != encoded:

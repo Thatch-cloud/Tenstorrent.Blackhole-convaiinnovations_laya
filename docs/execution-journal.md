@@ -73,6 +73,30 @@ The retained context is a snapshot of **verified claims**, not a signature artif
 
 ## Existing platform integration remains open
 
+### Frozen receipt wire contract
+
+`load_schema("execution-receipt")` defines the closed version-1 journal payload.
+The journal validates it in the same transaction before writing terminal state
+and outbox evidence. Invalid evidence leaves the attempt unresolved. Completed
+work carries observed row/token counts and host timings; failed work carries
+timings only; `not_started` requires a null start timestamp and a bounded reason.
+Unknown fields, generated-token claims, and inferred accelerator time are rejected.
+Numeric wire values fit unsigned 64-bit integers. Wall-clock timestamps need not
+be monotonic across a clock correction; elapsed durations remain separately measured.
+
+`schemas/fixtures/execution-receipts/` contains synthetic CPU-reference examples
+produced by the real journal with a fixed test clock. `test_execution_receipt.py`
+reproduces their exact payload bytes, checks restart persistence, and tests invalid
+evidence rollback. They contain no model result or physical-execution claim.
+The fixture files end with a newline; the journal payload string does not. Hash
+the actual transmitted payload bytes, never a parsed/reformatted representation.
+
+A receiver must authenticate the host, match all identities and runtime fields
+against its own durable reservation, and validate measured work against the granted
+ceilings. A schema-valid payload or matching SHA-256 is not producer authentication.
+Retain original bytes, usage identity and occurrence time through durable replay;
+acknowledge only after the authoritative receiver commits those exact bytes.
+
 The Management `UsageReceipt` vocabulary is workload/host/attempt-oriented, while
 Administration usage requires verified tenant/key/model identity and deduplication
 on stable `(key_id, event_uid)`. An authoritative adapter and service-class/dimension
