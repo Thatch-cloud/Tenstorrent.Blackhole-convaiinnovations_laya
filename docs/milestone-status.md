@@ -6,7 +6,7 @@ acceptance. It is not a claim that the complete single-P150A service is ready.
 | Requirement | Current evidence | Remaining gate |
 |---|---|---|
 | Pinned English source and model | Immutable source/checkpoint lock plus SHA256 for all five checkpoint assets | Reproduce under accelerator toolchain |
-| Reproducible CPU reference | Two independent processes pass exact loaded-state checks; 35 tensors and every answer match exactly | Derived rotary buffers and representative application dataset coverage |
+| Reproducible CPU reference | Original two CPU captures match exactly; fresh GitHub and WSL full-model checks also pass loaded-state integrity, exact inputs/answers, and fixed CPU logit tolerances | Intermittent local loaded-state failure remains unexplained; derived rotary buffers and representative application coverage remain |
 | Typed semantics and action outputs | Real fixtures cover choice, score, noul, single-option, mixed widths, batching, truncation, empty questions and temperature buckets | Physical device probability/decision parity, approved tolerances |
 | Strict full-model export | Five actual CPU graphs export and match the checked baseline with zero observed output error | Four of five FP32-source calls compiled offline (lowered IR includes BF16); fifth failed loaded-state integrity before compilation; physical TT execution remains unverified |
 | Shared runtime admission | Exact-byte payload binding, injected grant verifier and durable reservation hook, bounded payload/token/work admission | Real platform credential issuer and ledger implementation |
@@ -42,3 +42,19 @@ and 3.12 on Ubuntu 24.04. Each job ran 161 tests with 2 optional model-backed
 checks skipped, plus 92 passing subtests, then validated an isolated wheel install.
 This checks the committed fixture bytes, runtime contracts and package resources;
 it does not download or reload the full checkpoint and is not hardware acceptance.
+
+
+## Independent full-model CPU evidence
+
+[Hosted run 36094671855](https://github.com/Thatch-cloud/Tenstorrent.Blackhole-convaiinnovations_laya/actions/runs/36094671855)
+performed a fresh pinned download and full-Agent capture on commit `c962f22`,
+then passed the fixed CPU comparison policy. A separate local WSL full-Agent
+capture also passed. Retained reports and captures are indexed in
+[evidence/reference/independent-host-summary.json](../evidence/reference/independent-host-summary.json).
+The original Windows baseline uses Torch 2.14.0; these fresh Linux captures use
+Torch 2.11.0+cpu. Decoded answers and input tensors match exactly; floating outputs
+are compared numerically and are not claimed bit-identical across these toolchains.
+
+Three bounded local tensor-conversion/copy sweeps also matched. Neither those
+sweeps nor the successful full-model captures establish the cause of the earlier
+local loading failure. The compiler matrix failure remains preserved separately.

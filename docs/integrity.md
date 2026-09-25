@@ -35,3 +35,15 @@ runs must preserve their own outcomes rather than overwrite the failed attempt.
 A mismatch does not by itself identify faulty hardware, a conversion defect, or
 an incorrect verifier. Independent source-byte and scalar-conversion checks are
 needed to distinguish those explanations.
+
+
+The bounded conversion diagnostic completed three successful low-memory tensor
+sweeps; see [its evidence and limits](checkpoint-conversion-diagnostic.md).
+One fresh full-Agent load on GitHub's hosted CPU runner and one separate fresh
+full-Agent load on local WSL also passed exact loaded-state verification. Both
+matched all committed input tensors and decoded answers/question order. They
+passed the fixed absolute-plus-relative CPU logit tolerance; this is not bitwise
+output equality across toolchains. The [host summaries](../evidence/reference/independent-host-summary.json)
+retain both new captures and original reports. These successful observations do
+not explain or invalidate the earlier intermittent failures. No failed capture
+was repaired, overwritten or promoted.
