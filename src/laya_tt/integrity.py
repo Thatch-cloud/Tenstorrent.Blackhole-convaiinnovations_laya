@@ -2,6 +2,7 @@
 from __future__ import annotations
 import hashlib
 from pathlib import Path
+import sys
 
 class LoadedStateIntegrityError(RuntimeError):
     def __init__(self, report):
@@ -111,7 +112,12 @@ def verify_loaded_state(model, checkpoint, *, expected_sha256=None):
                 finite = np.isfinite(a).all() and np.isfinite(b).all()
                 maximum = float(np.max(np.abs(a.astype(np.float64) - b.astype(np.float64)))) if finite else None
                 report["mismatches"].append(dict(metadata, reason="value_mismatch", differing_elements=count,
-                                                 first_index=first, max_abs_error=maximum))
+                    first_index=first, max_abs_error=maximum,
+                    first_observed_value=str(a[tuple(first)].item()),
+                    first_expected_value=str(b[tuple(first)].item()),
+                    first_observed_storage_hex=observed[tuple(first)].tobytes().hex(),
+                    first_expected_storage_hex=expected[tuple(first)].tobytes().hex(),
+                    storage_byteorder=sys.byteorder))
             del source
     if _sha256(path) != digest:
         report["mismatches"].append({"key": "<artifact>", "reason": "checkpoint_changed_during_verification"})

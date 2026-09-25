@@ -17,3 +17,21 @@ A diagnostic found one differing element in `encoder.layers.6.mlp.Wo.weight` at 
 These observations establish an invalid loaded baseline. They do not identify whether the cause is hardware, allocation, copying or another runtime fault. They do not justify widening tolerances, automatically reloading until success, or claiming a hardware diagnosis.
 
 Initial Windows captures must not serve as acceptance evidence. Regenerate and independently repeat the reference in a clean environment after this gate passes. The gate detects checkpoint-to-memory disagreement; separate repeatability tests still establish stable computation and derived-buffer behavior.
+
+
+## Mismatch diagnostics
+
+Value mismatches now retain the first differing index, observed/expected values
+as strings, raw observed/expected storage bytes in hexadecimal, and host byte
+order. BF16 storage is reported as its original two bytes with decoded FP32
+values alongside it. Non-finite values remain JSON-safe diagnostic strings and
+still fail verification. These fields do not relax exact comparison or repair
+loaded parameters.
+
+The option/temperature compiler-matrix attempt also failed this check on local
+WSL/Linux before compiler invocation. The old failure only retained the parameter
+name; its element values cannot be reconstructed from that report. Fresh diagnostic
+runs must preserve their own outcomes rather than overwrite the failed attempt.
+A mismatch does not by itself identify faulty hardware, a conversion defect, or
+an incorrect verifier. Independent source-byte and scalar-conversion checks are
+needed to distinguish those explanations.

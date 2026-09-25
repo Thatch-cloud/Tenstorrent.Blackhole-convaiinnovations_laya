@@ -1,4 +1,7 @@
 import hashlib
+import json
+import struct
+import sys
 import pytest
 torch = pytest.importorskip("torch")
 pytest.importorskip("numpy")
@@ -38,6 +41,11 @@ def test_single_changed_element_fails_and_does_not_repair(tmp_path, key):
     assert detail["key"] == key
     assert detail["differing_elements"] == 1
     assert detail["max_abs_error"] > 0
+    assert detail["first_observed_storage_hex"] == before.flatten()[0].numpy().tobytes().hex()
+    expected = 0.125 if key == "weight" else 2.0
+    assert detail["first_expected_storage_hex"] == struct.pack("=f", expected).hex()
+    assert detail["first_expected_value"] == str(expected)
+    assert detail["storage_byteorder"] == sys.byteorder
     assert torch.equal(before, getattr(model, key))
 
 def test_shape_mismatch(tmp_path):
@@ -85,3 +93,22 @@ def test_nan_is_not_accepted(tmp_path):
     with pytest.raises(LoadedStateIntegrityError) as exc:
         verify_loaded_state(model, path)
     assert exc.value.report["mismatches"][0]["max_abs_error"] is None
+    detail = exc.value.report["mismatches"][0]
+    assert detail["first_observed_value"] == "nan"
+    assert len(detail["first_observed_storage_hex"]) == 8
+    json.dumps(exc.value.report, allow_nan=False)
+
+
+def test_bfloat16_mismatch_retains_storage_bits_and_decoded_values(tmp_path):
+    model = Tiny()
+    path = checkpoint(tmp_path, model)
+    model.bfloat16()
+    with torch.no_grad():
+        model.weight[0, 0] = 0.25
+    with pytest.raises(LoadedStateIntegrityError) as exc:
+        verify_loaded_state(model, path)
+    detail = exc.value.report["mismatches"][0]
+    assert detail["first_observed_value"] == "0.25"
+    assert detail["first_expected_value"] == "0.125"
+    assert detail["first_observed_storage_hex"] == struct.pack("=H", 0x3E80).hex()
+    assert detail["first_expected_storage_hex"] == struct.pack("=H", 0x3E00).hex()

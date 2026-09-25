@@ -37,3 +37,24 @@ Earlier unverified captures are quarantined under ignored local artifacts and
 must not be used as golden outputs. See `integrity.md` for the observed failure.
 The checkpoint's temperature for 11 or more options is clamped by upstream;
 affected confidence remains uncalibrated, even when implementation parity passes.
+
+
+## Independent CPU host check
+
+The manual `Independent CPU reference check` GitHub workflow downloads the pinned
+public checkpoint and source on a fresh hosted CPU runner, then calls
+`scripts/verify_reference_host.py --output artifacts/host-reference/capture` once.
+It retains dependency versions, the new capture and `host-reference-check.json`
+even when the check fails. There is no automatic retry or baseline replacement.
+
+Every input tensor must match the committed capture exactly. Both logits outputs
+must satisfy the predeclared CPU experiment tolerance `atol=rtol=1e-4`, and decoded
+answer values and question order must match exactly. These are separate reported
+conditions; tolerant tensor agreement cannot hide a changed decision. These
+thresholds are not approved accelerator promotion tolerances. The full model must
+first pass exact checkpoint-loaded-state verification. An integrity exception is
+recorded with its structured mismatch details and fails the job before inference.
+
+This lane tests a fresh full model load on an independent CPU host. Ordinary CPU
+contract CI only validates existing fixture files and lightweight runtime behavior.
+Neither lane executes a Tenstorrent device or establishes deployed service acceptance.

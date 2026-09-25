@@ -113,7 +113,10 @@ submission. This prevents confusing schema validation with authentication covera
 
 ## Errors, evolution and checks
 
-Use the platform machine-readable error envelope and request correlation. Native
+The public gateway proposal uses the platform machine-readable error envelope
+and request correlation. Its target mappings below are not yet implemented by a
+public gateway. The internal runtime transport has its own explicit status mapping
+in [internal-asgi.md](internal-asgi.md). Native
 malformed/unsupported inputs: 400; absent identity: 401; denied entitlement: 403;
 unknown model/task: 404; body/token limits: 413; tenant quota: 429 with Retry-After;
 no capacity/queue saturation: 503; expired execution deadline: 504. Compatibility
@@ -126,7 +129,7 @@ by old closed-schema clients. Serve discovery/capabilities only for ready observ
 runtimes and their supported contract/shape versions.
 
 Run `python -m unittest discover -s tests -p test_contracts.py -v` with `jsonschema`
-installed (tested with 4.17.3). Tests exercise all question shapes, malformed inputs,
+installed (CI-tested with 4.26.0). Tests exercise all question shapes, malformed inputs,
 resource ceilings, injection and envelope separation. They contain request fixtures
 and synthetic metering shape only, no model probability claims. Remaining integration
 gates include authenticated context binding, tenant fairness across keys, ordered
