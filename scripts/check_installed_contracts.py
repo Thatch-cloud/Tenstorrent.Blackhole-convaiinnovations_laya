@@ -2,6 +2,7 @@
 from jsonschema import Draft202012Validator
 from laya_tt.asgi import DecisionASGI
 from laya_tt.bootstrap import RuntimeApplication
+from laya_tt.grants import DecisionGrantVerifier
 from laya_tt.contracts import load_schema
 
 for name in ("decision-request", "decision-response", "admission-context",
@@ -10,4 +11,5 @@ for name in ("decision-request", "decision-response", "admission-context",
 
 assert callable(DecisionASGI)
 assert callable(RuntimeApplication)
+assert callable(DecisionGrantVerifier)
 print("Installed runtime composition and all five packaged schemas validated.")

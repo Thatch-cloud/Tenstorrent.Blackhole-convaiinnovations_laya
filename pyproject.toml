@@ -7,7 +7,7 @@ name = "laya-tt"
 version = "0.1.0"
 description = "Reference and runtime foundations for Laya on one Tenstorrent Blackhole card"
 requires-python = ">=3.11"
-dependencies = ["jsonschema>=4.26,<5"]
+dependencies = ["jsonschema>=4.26,<5", "cryptography>=46,<49"]
 
 [project.optional-dependencies]
 reference = ["torch>=2.7", "transformers>=4.48", "safetensors>=0.4", "huggingface_hub>=0.20", "numpy>=1.26"]
