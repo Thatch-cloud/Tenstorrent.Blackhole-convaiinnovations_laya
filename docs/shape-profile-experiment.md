@@ -70,7 +70,7 @@ single-option call. It shares the CPU experiment's layout function. The matrix
 verifies the requested bucket, all five tensor shapes, compiler/descriptor
 identity and artifact hashes. Compilation does not read dummy outputs and
 cannot establish numerical parity. Source weights remain FP32; the compiler's
-lowering precision must be assessed separately. Compiler results are pending.
+lowering precision must be assessed separately.
 
 The retained CPU report predates extraction of the unchanged layout function
 into `scripts/shape_profiles.py`; its script hash identifies the tested version
@@ -87,3 +87,27 @@ are unchanged. This setup failure is not a graph failure.
 New profile reports also retain the layout-helper hash, padding-token identity,
 and exact input tensor hashes. The compiler checks that the pinned encoder and
 tokenizer agree on the padding token before using the shared adapter.
+
+## Verified offline result
+
+[Run 36270614489](https://github.com/Thatch-cloud/Tenstorrent.Blackhole-convaiinnovations_laya/actions/runs/36270614489)
+completed successfully at `0a6a8184ca185b217ed132ec29f9372f8ea1a1c2`.
+All five profiles compiled. Each process verified all 206 persistent checkpoint
+tensors before compilation and emitted TTIR, TTNN IR and a binary. Compilation
+took approximately 29–39 seconds per shape; these are host compilation times,
+not inference latency. Binary sizes range from 2.52 to 5.69 MB and do not measure
+model residency or peak device memory.
+
+[Verification summary](../evidence/shape-profiles/offline-36270614489/summary.json)
+records the downloaded artifact/report/log hash checks. All 25 input tensor
+hashes were independently reconstructed from the pinned fixture and the local
+CPU profile adapter and matched the compiler reports. Compiler harness, matrix
+runner and layout-helper hashes also matched the tested checkout. The complete
+matrix, reports, logs and 15 generated artifacts are retained in the hashed
+`profile-sweep.zip` beside the summary; the archive is approximately 1.92 MB.
+
+Every generated TTNN IR contains BF16 tile layouts despite FP32 source weights.
+No dummy output was read, no numerical TT comparison was performed and no device
+was exposed. This closes offline compilation for the proposed profile shapes.
+Precision quality, actual device memory fit, isolated initialization, physical
+parity and performance remain open.
