@@ -1,9 +1,0 @@
-/home/runner/work/Tenstorrent.Blackhole-convaiinnovations_laya/Tenstorrent.Blackhole-convaiinnovations_laya/scripts/compiler_spike.py:269: RuntimeWarning: laya: this checkpoint ships invalid temperatures or values outside [0.5, 5]; using choice:11+=0.10058280825614929 -> 0.5. Treat confidence from the affected entries as uncalibrated.
-  agent = upstream_agent.Agent(str(checkpoint), device="cpu", compile=False, fast=False)
-[32m2026-09-25 04:47:55.101[0m | [33m[1mWARNING [0m | [36mtorch_plugin_tt[0m:[36m__init__[0m:[36m43[0m - [33m[1mTT plugin is setting XLA_STABLEHLO_COMPILE to 1. This is required for TT PJRT plugin to work correctly.[0m
-/home/runner/work/Tenstorrent.Blackhole-convaiinnovations_laya/Tenstorrent.Blackhole-convaiinnovations_laya/scripts/compiler_spike.py:370: DeprecationWarning: Use torch_xla.device instead
-  device = xm.xla_device()
-2026-09-25 04:47:55.112 (   0.011s) [        B90A1B80]     client_instance.cc:395   INFO| Loading system descriptor from path: /home/runner/work/Tenstorrent.Blackhole-convaiinnovations_laya/Tenstorrent.Blackhole-convaiinnovations_laya/configs/compiler/migrated-p150/p150-migrated-nightly.ttsys
-2026-09-25 04:47:55.112831: W torch_xla/csrc/runtime/profiler.cpp:88] Profiler API not found for PJRT plugin
-2026-09-25 04:48:14.077 (  18.976s) [        8996C6C0]loaded_executable_insta:488   INFO| Compile-only mode: returning default output buffers (TT_COMPILE_ONLY_SYSTEM_DESC is set).
-{"status": "COMPILED", "report": "/home/runner/work/Tenstorrent.Blackhole-convaiinnovations_laya/Tenstorrent.Blackhole-convaiinnovations_laya/artifacts/offline-ci/option-buckets/option-temperature-buckets-000/report.json", "physical_acceptance": false}

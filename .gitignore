@@ -11,3 +11,7 @@ dist/
 .env.*
 IMPLEMENTATION-SCOPE.md
 docs/platform-integration.local.md
+
+# Generated environment captures are not public source.
+evidence/
+*.bundle

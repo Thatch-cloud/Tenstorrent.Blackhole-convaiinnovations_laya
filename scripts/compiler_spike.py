@@ -492,7 +492,7 @@ def main(argv=None):
             passed = all(metric["passed"] for row in report["graphs"] for metric in row["comparisons"].values())
             report["status"] = "PASSED" if passed else "FAILED"
             report["device_execution"] = args.mode == "tt-xla"
-            report["note"] = "Full tensor graph experiment only; platform and semantic acceptance remain separate"
+            report["note"] = "Full tensor graph experiment only; numerical and performance acceptance remain separate"
             code = 0 if passed else 1
     except Blocked as exc:
         report.update(status="BLOCKED", reason=str(exc))

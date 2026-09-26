@@ -151,7 +151,7 @@ def test_compiler_accepts_pinned_registration_metadata():
         assert spike.compiler_installation() == {"version":"1.0.test", "commit":spike.TT_XLA_AUDITED_COMMIT}
 
 def visibility_fixture(tmp_path, monkeypatch):
-    bdf = "0000:f4:00.0"
+    bdf = "0000:03:00.0"
     monkeypatch.setenv("TT_VISIBLE_DEVICES", bdf)
     proof = {"verified":True, "initialization_isolated":True, "other_devices_untouched":True,
              "host":socket.gethostname(), "device_serial":"serial", "device_bdf":bdf,
@@ -164,7 +164,7 @@ def visibility_fixture(tmp_path, monkeypatch):
 
 def test_visibility_proof_accepts_matching_pin_and_board(tmp_path, monkeypatch):
     _, _, allocation, compiler = visibility_fixture(tmp_path, monkeypatch)
-    assert spike.verify_visibility_proof(tmp_path / "lease.json", allocation, compiler)["device_bdf"] == "0000:f4:00.0"
+    assert spike.verify_visibility_proof(tmp_path / "lease.json", allocation, compiler)["device_bdf"] == "0000:03:00.0"
 
 @pytest.mark.parametrize("field,value", [("verified",False),("initialization_isolated",False),
                                         ("other_devices_untouched",False),("host","other"),

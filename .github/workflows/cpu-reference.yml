@@ -21,7 +21,7 @@ jobs:
       - name: Install pinned CPU reference dependencies
         run: |
           python -m pip install torch==2.11.0 --index-url https://download.pytorch.org/whl/cpu
-          python -m pip install numpy==2.4.6 safetensors==0.8.0 transformers==5.17.0 tokenizers==0.23.2 huggingface-hub==1.16.1 '.[serve]'
+          python -m pip install numpy==2.4.6 safetensors==0.8.0 transformers==5.17.0 tokenizers==0.23.2 huggingface-hub==1.16.1 '.'
           python -m pip check
           mkdir -p artifacts/host-reference
           python -m pip freeze > artifacts/host-reference/environment.lock
@@ -35,10 +35,6 @@ jobs:
         run: python scripts/download_checkpoint.py
       - name: Capture and compare full CPU reference once
         run: python scripts/verify_reference_host.py --output artifacts/host-reference/capture
-      - name: Exercise real CPU runtime with signed admission and Unix ledger peer
-        env:
-          LAYA_CPU_INTEGRATION: '1'
-        run: python -m unittest discover -s tests -p test_cpu_runtime.py -v
       - name: Retain CPU observations even on failure
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

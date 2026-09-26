@@ -29,7 +29,7 @@ Hardware parity should inspect logits, calibrated probabilities, score expectati
 The checked fixture under `tests/fixtures/cpu-reference` passed exact loaded-state
 verification for 206 tensors (421,293,830 elements). A second fresh process passed
 the same gate and matched all 35 captured input/output tensors and every answer
-JSON byte exactly. `evidence/cpu-repeatability.json` records the comparisons.
+JSON byte exactly in the reference experiment.
 Four nonpersistent rotary buffers are not checkpoint-backed; identical repeated
 outputs do not constitute an independent derivation check for those buffers.
 
@@ -56,5 +56,5 @@ first pass exact checkpoint-loaded-state verification. An integrity exception is
 recorded with its structured mismatch details and fails the job before inference.
 
 This lane tests a fresh full model load on an independent CPU host. Ordinary CPU
-contract CI only validates existing fixture files and lightweight runtime behavior.
-Neither lane executes a Tenstorrent device or establishes deployed service acceptance.
+recipe CI only validates existing fixture files and model helpers.
+Neither lane executes a Tenstorrent device or establishes inference performance.

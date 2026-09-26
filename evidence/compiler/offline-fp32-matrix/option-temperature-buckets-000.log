@@ -1,3 +1,0 @@
-/mnt/d/Programming/Tenstorrent.Blackhole-convaiinnovations_laya/scripts/compiler_spike.py:268: RuntimeWarning: laya: this checkpoint ships invalid temperatures or values outside [0.5, 5]; using choice:11+=0.10058280825614929 -> 0.5. Treat confidence from the affected entries as uncalibrated.
-  agent = upstream_agent.Agent(str(checkpoint), device="cpu", compile=False, fast=False)
-{"status": "FAILED", "report": "/mnt/d/Programming/Tenstorrent.Blackhole-convaiinnovations_laya/artifacts/compiler/offline-matrix-fp32-v1/option-temperature-buckets-000/report.json", "physical_acceptance": false}

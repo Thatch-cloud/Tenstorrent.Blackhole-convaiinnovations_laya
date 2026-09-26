@@ -4,7 +4,6 @@ from __future__ import annotations
 from collections.abc import Mapping
 from dataclasses import dataclass
 import json
-from itertools import chain
 import os
 from pathlib import Path
 import sys
@@ -12,12 +11,18 @@ from types import MappingProxyType
 from typing import Any
 import warnings
 
-from .admission import PreparedInput, RequestTooLarge
 from .reference import checkpoint_files, validate_manifest
-from .readback import BackendReadback, ReadbackUnavailable
 
 
-class InputWouldTruncate(RequestTooLarge):
+@dataclass(frozen=True)
+class PreparedInput:
+    """Encoded model input with row and token counts."""
+    question_rows: int
+    encoded_tokens: int
+    payload: Any
+
+
+class InputWouldTruncate(ValueError):
     """The upstream encoder would silently discard request content."""
 
 
@@ -78,7 +83,7 @@ class CpuPreparedPayload:
     """Owned CPU tensors; only this backend may consume this payload.
 
     The envelope/maps are immutable. Tensor buffers remain mutable by PyTorch;
-    admission and worker retain exclusive ownership and must not expose them.
+    callers must retain exclusive ownership while executing the model.
     """
     owner: object
     question_ids: tuple[str, ...]
@@ -93,24 +98,13 @@ class CpuReferenceBackend:
 
     ``prepare`` tokenizes only; ``execute`` performs one CPU model call without
     invoking upstream fallback, hooks, automatic truncation, or alternate devices.
-    Execute through SerializedWorker: this object is not a concurrent engine.
+    Calls must be serialized: this object is not a concurrent engine.
     """
     def __init__(self, agent, common, torch_module, *, initialization_warnings=()):
         self._agent, self._common, self._torch = agent, common, torch_module
         self._owner = object()
         self.initialization_warnings = tuple(initialization_warnings)
         self._bootstrap_verified = False
-
-    def readback(self) -> BackendReadback:
-        """Available only after pinned factory load and loaded-state verification."""
-        agent, torch = self._agent, self._torch
-        if (not self._bootstrap_verified or agent.device.type != "cpu"
-                or agent.amp_enabled or agent._fast is not None
-                or any(p.device.type != "cpu" or (p.is_floating_point() and p.dtype != torch.float32)
-                       for p in chain(agent.model.parameters(), agent.model.buffers()))):
-            raise ReadbackUnavailable("CPU reference bootstrap/mode is not verified")
-        return BackendReadback("cpu-reference", "float32", ("choice", "score", "noul"),
-                               64, 64, 512, 192, 32768)
 
     def prepare(self, request: Mapping) -> PreparedInput:
         request = _thaw(request)

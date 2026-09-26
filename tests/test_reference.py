@@ -77,7 +77,7 @@ def test_case_inventory_covers_required_shapes():
 
 def test_rejects_other_request_options_even_when_question_id_matches():
     with pytest.raises(ValueError, match="requested criteria"):
-        validate_answers(answer(), {"q":{"type":"choice", "criteria":["another-tenant-option"]}})
+        validate_answers(answer(), {"q":{"type":"choice", "criteria":["different-option"]}})
 
 
 def test_rejects_reordered_probability_options():

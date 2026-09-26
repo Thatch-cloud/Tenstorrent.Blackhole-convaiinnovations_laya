@@ -5,17 +5,13 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "laya-tt"
 version = "0.1.0"
-description = "Reference and runtime foundations for Laya on one Tenstorrent Blackhole card"
+description = "Standalone model recipe for Laya on one Tenstorrent Blackhole card"
 requires-python = ">=3.11"
-dependencies = ["jsonschema>=4.26,<5", "cryptography>=46,<49"]
+dependencies = []
 
 [project.optional-dependencies]
 reference = ["torch>=2.7", "transformers>=4.48", "safetensors>=0.4", "huggingface_hub>=0.20", "numpy>=1.26"]
-test = ["pytest>=8", "uvicorn==0.54.0"]
-serve = ["uvicorn==0.54.0"]
-
-[project.scripts]
-laya-cpu-serve = "laya_tt.serve:main"
+test = ["pytest>=8"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -23,6 +19,3 @@ where = ["src"]
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
-
-[tool.setuptools.package-data]
-laya_tt = ["schemas/*.schema.json"]

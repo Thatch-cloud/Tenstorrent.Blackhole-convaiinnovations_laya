@@ -1,83 +1,57 @@
 # Laya on Tenstorrent Blackhole
 
-Work in progress toward one-card Laya inference with a shared-service integration
-contract. The TT backend and deployed shared endpoint are not yet accepted.
+Standalone, experimental recipe for running [Laya](https://github.com/NandhaKishorM/laya)
+on one Tenstorrent P150 card. This repository contains model preparation, CPU
+reference validation, and TT-XLA compilation experiments.
 
-Implemented foundations:
+**Status:** CPU references and offline compilation have passed. Physical TT
+inference, numerical parity, memory usage, and latency have not been accepted.
+This is not yet a working accelerated inference release.
 
-- Immutable upstream/checkpoint pinning and tensor/JSON reference capture.
-- Native typed-decision request/response and separate internal admission schemas.
-- Required platform verifier and reservation hooks, exact request-byte binding,
-  runtime/revision/deadline checks, and bounded JSON parsing.
-- Serialized tenant-fair worker with bounded queue costs and cancellation/drain.
-- Optional durable execution journal and receipt outbox with crash/replay checks.
-- Internal decision service composing verified admission, observed timing, response
-  validation, model self-test readiness, failure and drain ownership.
-- Explicit CPU reference backend, preserving upstream decision semantics and
-  rejecting silently truncated native inputs.
-- Strict PyTorch graph-export experiment and guarded TT-XLA experiment harness.
+## Prepare the reference
 
-## Local development
-
-Python 3.11 or newer is required. The tested Windows reference environment has a
-version lock; the accelerator toolchain needs its own compatible Linux lock.
+Python 3.11 or newer is required. The Windows CPU environment is pinned separately
+from the Linux compiler environment.
 
 ```powershell
 py -3.11 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements-reference-windows-py311.lock
 .\.venv\Scripts\python.exe -m pip install --no-deps -e .
-.\.venv\Scripts\python.exe -m pytest -q
-```
-
-Prepare the immutable source and English checkpoint:
-
-```powershell
 git clone --no-checkout https://github.com/NandhaKishorM/laya.git .cache/upstream/laya
 git -C .cache/upstream/laya checkout --detach 970dc8c5f63d7b886a68409493f37d569424f933
 .\.venv\Scripts\python.exe scripts/download_checkpoint.py
-.\.venv\Scripts\python.exe scripts/pin_checkpoint.py --repo-id convaiinnovations/laya --revision 55cf4c4ebb4ebe31b2550e8bdf3bd21b99753851
 .\.venv\Scripts\python.exe scripts/build_reference.py --output artifacts/reference/cpu
+.\.venv\Scripts\python.exe -m pytest -q
 ```
 
-Do not overwrite an existing evidence directory. Source and checkpoint hashes,
-loaded-weight integrity, actual dtype/backend and calibration must be validated
-before promoting a reference. A matching compiled graph is not sufficient when
-its starting model differs from the checkpoint.
+The checkpoint lock pins revision `55cf4c4ebb4ebe31b2550e8bdf3bd21b99753851`
+and every file digest. Weights are downloaded from the upstream publisher and are
+not included. Source, checkpoint, tokenizer, and loaded weights must pass validation;
+do not silently repin changed files or overwrite earlier experiment output.
 
-## Integration boundaries
+## Compile for P150
 
-The runtime is an internal execution component. Platform authentication, durable
-reservation/replay control and authoritative billing are injected interfaces;
-there is no default authentication bypass or in-process substitute for those
-services. JSON schemas alone do not authenticate a tenant. Shared-service ingress
-must supply a verified envelope independently of customer JSON.
+Use Linux with the matched packages in `requirements-compiler-linux-py312.lock`.
+The manual `Independent offline option-bucket compilation` workflow provides a
+reproducible device-free setup. It can compile the original option batch or five
+single-row profiles (32, 64, 128, 256, and 512 tokens). FP32 source is the default;
+the mixed BF16/FP32 policy is experimental and has no hardware parity acceptance.
 
-See [API contract](docs/api-contract.md), [worker lifecycle](docs/runtime-lifecycle.md),
-[decision service](docs/decision-service.md), [execution journal](docs/execution-journal.md), [reference capture](docs/reference.md),
-[compiler spike](docs/compiler-spike.md), and [loaded-state integrity](docs/integrity.md).
-The upstream model is [Convai Innovations Laya](https://github.com/NandhaKishorM/laya).
-Weights remain external and are not included here.
+See [compiler instructions](docs/compiler-spike.md), [shape and precision probes](docs/model-experiments.md),
+[descriptor migration](docs/descriptor-migration.md), [CPU reference](docs/reference.md),
+and [loaded-state validation](docs/integrity.md).
 
-## Acceptance
+Offline compilation uses a saved generic descriptor and produces dummy outputs.
+It establishes compiler feasibility only. Before physical execution, verify exclusive
+access to the selected board and the installed runtime's device-discovery behavior;
+see the [device visibility audit](docs/device-visibility-audit.md). No reset or
+firmware change is part of the recipe.
 
-Local unit tests, CPU model execution, TT graph execution and deployed multi-tenant
-acceptance are separate gates. Hardware requires a verified exclusive board
-allocation; runner availability or an environment-variable device mask alone is
-not proof of isolation from another runtime. No resets or firmware changes are
-part of this repository's default execution flow.
+## Repository scope
 
-Current local evidence: two fresh-process CPU captures passed the exact loaded
-checkpoint-state gate and matched all captured tensors and answers. Strict
-PyTorch export passed all five model calls against that reference. These results
-validate the CPU baseline and export experiment. All five FP32-source model calls
-have now compiled offline for the pinned P150 descriptor, including an independent
-host check of the option-temperature case. The earlier local loaded-state
-integrity failure remains preserved and unexplained. Lowered IR includes BF16. Physical TT execution and
-the deployed shared-service path remain outstanding.
-
-
-CPU contract CI covers Python 3.11 and 3.12, validates the committed reference
-index and every captured tensor, and checks schema resources from an isolated
-wheel installation. It does not download model weights or run the accelerator.
-The workflow is defined in `.github/workflows/cpu-contracts.yml`; local checks
-and a GitHub Actions run remain distinct evidence.
+Only standalone model code, public upstream dependencies, synthetic fixtures,
+and reproducible model experiments belong here. Deployment integrations and
+operational inventories are outside this repository's scope. Keep generated
+logs, host captures, model weights, and compiler artifacts under ignored `artifacts/`.
+Review generated files before sharing them; they can contain machine paths and
+other environment details.
