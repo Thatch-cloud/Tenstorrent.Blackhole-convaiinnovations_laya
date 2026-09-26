@@ -85,3 +85,17 @@ latency or model residency. TTNN IR contains both BF16 and FP32 type text; textu
 counts are not proof of action-head operator precision. No dummy outputs were
 read and no physical execution or numerical comparison occurred. The mixed
 candidate remains unpromoted pending lowered-operator review and device parity.
+
+## Action-head IR review
+
+A [targeted review](../evidence/precision/offline-mixed-36274273596/action-head-ir-review.json)
+traced the two final `ttnn.linear` operations back to `act_head.0` and
+`act_head.2` weight/bias arguments in every retained profile. All ten operations
+use FP32 input/output tensor types and FP32 tile layouts, with `hifi4` and
+`fp32_dest_acc_en = true`. The first operation fuses GELU; the second consumes
+its result and returns the action logits as the graph's second output.
+
+The review records each IR hash, line, operation and referenced layout. It
+establishes the declared compiler configuration for these two layers only.
+Kernel accuracy, fused GELU equivalence, earlier feature computation and
+physical probability parity remain unverified.
