@@ -50,6 +50,7 @@ def main(argv=None):
         model = agent.model.float().eval()
         digest = manifest["checkpoint"]["files"]["model.safetensors"]
         report.update(script_sha256=sha256_file(__file__), torch_version=torch.__version__,
+                      profile_helper_sha256=sha256_file(root / "scripts/shape_profiles.py"),
                       manifest_sha256=sha256_file(root / "configs/checkpoint-lock.json"),
                       loaded_state_integrity=verify_loaded_state(model, checkpoint, expected_sha256=digest))
         original_forward = model.forward

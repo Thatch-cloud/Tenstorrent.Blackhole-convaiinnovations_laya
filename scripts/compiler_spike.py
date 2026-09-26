@@ -381,8 +381,19 @@ def run_compile_only(args, reference, manifest, source, checkpoint, output, prog
         # Obtain the padding identity from the hash-validated encoder config.
         tokenizer_config = json.loads((checkpoint / "encoder/config.json").read_text())
         pad_id = tokenizer_config["pad_token_id"]
+        tokenizer = json.loads((checkpoint / "tokenizer/tokenizer.json").read_text(encoding="utf-8"))
+        tokenizer_options = json.loads((checkpoint / "tokenizer/tokenizer_config.json").read_text(encoding="utf-8"))
+        pad_name = tokenizer_options["pad_token"]
+        pad_ids = {entry["id"] for entry in tokenizer["added_tokens"] if entry["content"] == pad_name}
+        if pad_ids != {pad_id}:
+            raise ValueError("Pinned tokenizer and encoder padding identities differ")
         profiled, = profile_rows(tuple(tensors[name] for name in INPUTS), pad_id, sequence_bucket=profile_bucket)
         tensors = dict(zip(INPUTS, profiled))
+        progress["profile_layout"] = {"helper_sha256": sha256_file(ROOT / "scripts/shape_profiles.py"),
+                                      "pad_token_id": pad_id, "bucket": profile_bucket,
+                                      "inputs": {name: {"dtype": str(value.dtype), "shape": list(value.shape),
+                                          "sha256": hashlib.sha256(value.contiguous().numpy().tobytes()).hexdigest()}
+                                          for name, value in tensors.items()}}
     progress["compilation_attempted"] = True
     with torch.no_grad():
         # Keep lazy outputs alive for the barrier, but never copy/read/compare them.

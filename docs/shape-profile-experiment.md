@@ -75,3 +75,15 @@ lowering precision must be assessed separately. Compiler results are pending.
 The retained CPU report predates extraction of the unchanged layout function
 into `scripts/shape_profiles.py`; its script hash identifies the tested version
 at commit `e8add32d20e92a3ddf8b3e59e706b320452c4ec2`.
+
+The first offline dispatch, [36270462408](https://github.com/Thatch-cloud/Tenstorrent.Blackhole-convaiinnovations_laya/actions/runs/36270462408),
+failed during environment setup, before any model compilation. The explicit
+compiler lock had not acquired the runtime's newer `cryptography` dependency;
+mandatory `pip check` rejected the environment. The lock now includes
+`cryptography==48.0.1`, `cffi==2.1.1` and `pycparser==3.0`, matching the installed
+CPU development versions. The compiler versions and mandatory dependency check
+are unchanged. This setup failure is not a graph failure.
+
+New profile reports also retain the layout-helper hash, padding-token identity,
+and exact input tensor hashes. The compiler checks that the pinned encoder and
+tokenizer agree on the padding token before using the shared adapter.

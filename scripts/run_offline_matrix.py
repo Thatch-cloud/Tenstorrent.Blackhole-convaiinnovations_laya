@@ -111,6 +111,7 @@ def main(argv=None):
                  "reference_sha256": REFERENCE_SHA, "descriptor_sha256": DESCRIPTOR_SHA,
                  "toolchain_commit": TOOLCHAIN, "dtype": "float32", "cases": [],
                  "compiler_harness_sha256": sha(root / "scripts/compiler_spike.py"),
+                 "profile_helper_sha256": sha(root / "scripts/shape_profiles.py") if args.profile_buckets else None,
                  "runner_sha256": sha(Path(__file__)),
                  "note": "Elapsed times are host compilation duration, not inference latency"}
     env = os.environ.copy()
