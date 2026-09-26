@@ -357,6 +357,17 @@ def run_compile_only(args, reference, manifest, source, checkpoint, output, prog
     os.environ["TT_COMPILE_ONLY_SYSTEM_DESC"] = str(Path(args.system_desc).resolve())
     import torch
     model = load_pinned_model(manifest, source, checkpoint, progress)
+    if getattr(args, "precision", "float32") == "mixed-bf16-fp32":
+        from probe_bf16_cpu import apply_candidate_policy
+        from laya_tt.integrity import verify_loaded_state
+        progress["precision_policy"] = {
+            "name": "mixed-bf16-fp32",
+            "helper_sha256": sha256_file(ROOT / "scripts/probe_bf16_cpu.py"),
+            "inventory": apply_candidate_policy(model),
+        }
+        progress["candidate_loaded_state_integrity"] = verify_loaded_state(
+            model, checkpoint,
+            expected_sha256=manifest["checkpoint"]["files"]["model.safetensors"])
     import torch_xla
     import torch_xla.runtime as xr
     import torch_xla.core.xla_model as xm
@@ -423,12 +434,15 @@ def main(argv=None):
     parser.add_argument("--case-id")
     parser.add_argument("--call-index", type=int, default=0)
     parser.add_argument("--profile-bucket", type=int, choices=(32, 64, 128, 256, 512))
+    parser.add_argument("--precision", choices=("float32", "mixed-bf16-fp32"), default="float32")
     parser.add_argument("--lease")
     parser.add_argument("--lease-sha256")
     parser.add_argument("--atol", type=float, default=1e-4)
     parser.add_argument("--rtol", type=float, default=1e-4)
     parser.add_argument("--save-export", action="store_true")
     args = parser.parse_args(argv)
+    if args.precision != "float32" and args.mode != "tt-compile-only":
+        parser.error("Experimental mixed precision is permitted only in offline compilation")
     if args.profile_bucket is not None and args.mode != "tt-compile-only":
         parser.error("Experimental profiles are permitted only in offline compilation")
     for field in ("reference", "manifest", "cases", "output", "lease", "system_desc"):
@@ -441,7 +455,7 @@ def main(argv=None):
     output.mkdir(parents=True, exist_ok=True)
     report = {"schema_version": 1, "mode": args.mode, "physical_acceptance": False,
               "graph_executed": False, "reference_sha256": args.reference_sha256,
-              "dtype": "float32", "status": "FAILED"}
+              "dtype": args.precision, "status": "FAILED"}
     code = 1
     original_compile_only = os.environ.get("TT_COMPILE_ONLY_SYSTEM_DESC")
     if args.mode == "tt-compile-only":

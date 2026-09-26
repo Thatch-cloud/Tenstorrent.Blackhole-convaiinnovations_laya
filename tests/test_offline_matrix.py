@@ -77,3 +77,35 @@ def test_wrong_case_and_incomplete_artifacts_rejected(tmp_path):
     (tmp_path / "report.json").write_text(json.dumps(report))
     with pytest.raises(ValueError, match="artifact set"):
         matrix.inspect_report(tmp_path, "case", 0)
+
+
+def test_mixed_precision_requires_policy_and_converted_state_proof(tmp_path):
+    report = report_fixture(tmp_path)
+    report["dtype"] = "mixed-bf16-fp32"
+    report["candidate_loaded_state_integrity"] = {"verified": True}
+    report["precision_policy"] = {
+        "name": "mixed-bf16-fp32", "helper_sha256": "audited-policy",
+        "inventory": {"parameters": {
+            "encoder.weight": {"dtype": "torch.bfloat16"},
+            "act_head.weight": {"dtype": "torch.float32"}},
+            "buffers": {"encoder.rotary": {"dtype": "torch.float32"}}}}
+    path = tmp_path / "report.json"
+    path.write_text(json.dumps(report))
+    assert matrix.inspect_report(tmp_path, "case", 0, precision="mixed-bf16-fp32",
+                                 policy_sha256="audited-policy")["status"] == "COMPILED"
+    with pytest.raises(ValueError, match="precision experiment"):
+        matrix.inspect_report(tmp_path, "case", 0)
+    with pytest.raises(ValueError, match="policy or converted-state"):
+        matrix.inspect_report(tmp_path, "case", 0, precision="mixed-bf16-fp32",
+                              policy_sha256="changed-policy")
+    report["candidate_loaded_state_integrity"]["verified"] = False
+    path.write_text(json.dumps(report))
+    with pytest.raises(ValueError, match="converted-state"):
+        matrix.inspect_report(tmp_path, "case", 0, precision="mixed-bf16-fp32",
+                              policy_sha256="audited-policy")
+    report["candidate_loaded_state_integrity"]["verified"] = True
+    report["precision_policy"]["inventory"]["parameters"]["act_head.weight"]["dtype"] = "torch.bfloat16"
+    path.write_text(json.dumps(report))
+    with pytest.raises(ValueError, match="parameter dtype"):
+        matrix.inspect_report(tmp_path, "case", 0, precision="mixed-bf16-fp32",
+                              policy_sha256="audited-policy")

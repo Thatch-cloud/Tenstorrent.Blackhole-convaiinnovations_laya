@@ -7,6 +7,11 @@ on:
         description: Compile five single-row profiles instead of original option batch
         type: boolean
         default: false
+      precision:
+        description: Experimental source precision (no numerical acceptance)
+        type: choice
+        options: [float32, mixed-bf16-fp32]
+        default: float32
 
 permissions:
   contents: read
@@ -21,6 +26,7 @@ jobs:
       HF_HUB_DISABLE_PROGRESS_BARS: '1'
       PIP_DISABLE_PIP_VERSION_CHECK: '1'
       PROFILE_SWEEP: ${{ inputs.profile_sweep }}
+      SOURCE_PRECISION: ${{ inputs.precision || 'float32' }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
@@ -50,9 +56,9 @@ jobs:
         run: |
           set -o pipefail
           if [[ "$PROFILE_SWEEP" == "true" ]]; then
-            python scripts/run_offline_matrix.py --root "$GITHUB_WORKSPACE" --cases single-option --profile-buckets 32 64 128 256 512 --timeout 1200 --output artifacts/offline-ci/profile-sweep 2>&1 | tee artifacts/offline-ci/matrix.log
+            python scripts/run_offline_matrix.py --root "$GITHUB_WORKSPACE" --precision "$SOURCE_PRECISION" --cases single-option --profile-buckets 32 64 128 256 512 --timeout 1200 --output artifacts/offline-ci/profile-sweep 2>&1 | tee artifacts/offline-ci/matrix.log
           else
-            python scripts/run_offline_matrix.py --root "$GITHUB_WORKSPACE" --cases option-temperature-buckets --timeout 1200 --output artifacts/offline-ci/option-buckets 2>&1 | tee artifacts/offline-ci/matrix.log
+            python scripts/run_offline_matrix.py --root "$GITHUB_WORKSPACE" --precision "$SOURCE_PRECISION" --cases option-temperature-buckets --timeout 1200 --output artifacts/offline-ci/option-buckets 2>&1 | tee artifacts/offline-ci/matrix.log
           fi
       - name: Retain reports, failures, and compiled artifacts
         if: always()

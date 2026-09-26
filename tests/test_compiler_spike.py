@@ -14,6 +14,16 @@ def write_json(path, value):
     path.write_text(json.dumps(value), encoding="utf-8")
     return spike.sha256_file(path)
 
+
+@pytest.mark.parametrize("mode", ["preflight", "torch-export", "tt-xla"])
+def test_mixed_precision_cannot_enable_physical_execution_or_cpu_comparison(mode, tmp_path):
+    output = tmp_path / "must-not-start"
+    with pytest.raises(SystemExit) as exc:
+        spike.main(["--mode", mode, "--precision", "mixed-bf16-fp32",
+                    "--reference-sha256", "unused", "--output", str(output)])
+    assert exc.value.code == 2
+    assert not output.exists()
+
 def fixture(tmp_path):
     manifest_path = tmp_path / "manifest.json"
     cases_path = tmp_path / "cases.json"

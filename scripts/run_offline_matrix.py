@@ -1,4 +1,4 @@
-"""Bounded FP32 compiler matrix; each shape gets a fresh process and cache."""
+"""Bounded offline compiler matrix; each shape gets a fresh process and cache."""
 from __future__ import annotations
 import argparse
 import hashlib
@@ -36,17 +36,36 @@ def targets(reference, selected):
     return result
 
 
-def inspect_report(directory, case, call, profile_bucket=None):
+def inspect_report(directory, case, call, profile_bucket=None, precision="float32", policy_sha256=None):
     path = directory / "report.json"
     report = json.loads(path.read_text())
     evidence = {"report_sha256": sha(path), "status": report["status"], "artifacts": {}}
     if (report.get("mode") != "tt-compile-only" or report.get("compile_only") is not True
-            or report.get("physical_acceptance") is not False or report.get("dtype") != "float32"
+            or report.get("physical_acceptance") is not False or report.get("dtype") != precision
             or report.get("reference_sha256") != REFERENCE_SHA
             or any(key in report for key in ("graph_executed", "device_execution"))):
-        raise ValueError("Report is not the pinned FP32 offline experiment")
+        raise ValueError("Report is not the pinned offline precision experiment")
     if report["status"] != "COMPILED":
         return evidence
+    if precision == "mixed-bf16-fp32":
+        policy = report.get("precision_policy", {})
+        if (not policy_sha256 or policy.get("name") != precision
+                or policy.get("helper_sha256") != policy_sha256
+                or report.get("candidate_loaded_state_integrity", {}).get("verified") is not True):
+            raise ValueError("Mixed precision policy or converted-state integrity mismatch")
+        inventory = policy.get("inventory", {})
+        parameters = inventory.get("parameters", {})
+        if not parameters or not inventory.get("buffers"):
+            raise ValueError("Missing mixed precision tensor inventory")
+        for name, item in parameters.items():
+            if name.startswith("act_head."):
+                expected = "torch.float32"
+            elif name.startswith(("encoder.", "head.", "type_emb.", "scorer.")):
+                expected = "torch.bfloat16"
+            else:
+                raise ValueError("Unknown mixed precision parameter")
+            if item.get("dtype") != expected:
+                raise ValueError("Mixed precision parameter dtype mismatch")
     compiled = report["compilation"]
     if compiled.get("profile_bucket") != profile_bucket:
         raise ValueError("Compiled profile identity mismatch")
@@ -84,6 +103,7 @@ def main(argv=None):
     parser.add_argument("--cases", nargs="+", default=["mixed-question-widths", "mixed-state-lengths", "conversation-truncation", "option-temperature-buckets"])
     parser.add_argument("--timeout", type=int, default=1200)
     parser.add_argument("--profile-buckets", nargs="+", type=int, choices=(32, 64, 128, 256, 512))
+    parser.add_argument("--precision", choices=("float32", "mixed-bf16-fp32"), default="float32")
     args = parser.parse_args(argv)
     if platform.system() != "Linux" or list(Path("/dev/tenstorrent").glob("*")):
         raise RuntimeError("Offline matrix requires Linux without TT device nodes")
@@ -106,10 +126,12 @@ def main(argv=None):
     else:
         jobs = [(case, call, None) for case, call in jobs]
     output.mkdir(parents=True)
-    aggregate = {"schema_version": 1, "kind": "offline_fp32_compiler_matrix",
+    policy_sha256 = sha(root / "scripts/probe_bf16_cpu.py") if args.precision == "mixed-bf16-fp32" else None
+    aggregate = {"schema_version": 1, "kind": "offline_fp32_compiler_matrix" if args.precision == "float32" else "offline_mixed_precision_compiler_matrix",
                  "physical_acceptance": False, "numerical_comparison_performed": False,
                  "reference_sha256": REFERENCE_SHA, "descriptor_sha256": DESCRIPTOR_SHA,
-                 "toolchain_commit": TOOLCHAIN, "dtype": "float32", "cases": [],
+                 "toolchain_commit": TOOLCHAIN, "dtype": args.precision, "cases": [],
+                 "precision_policy_sha256": policy_sha256,
                  "compiler_harness_sha256": sha(root / "scripts/compiler_spike.py"),
                  "profile_helper_sha256": sha(root / "scripts/shape_profiles.py") if args.profile_buckets else None,
                  "runner_sha256": sha(Path(__file__)),
@@ -128,7 +150,7 @@ def main(argv=None):
                    "--toolchain-commit", TOOLCHAIN, "--reference", str(ref), "--reference-sha256", REFERENCE_SHA,
                    "--system-desc", str(root / "configs/compiler/migrated-p150/p150-migrated-nightly.ttsys"),
                    "--system-desc-sha256", DESCRIPTOR_SHA, "--case-id", case, "--call-index", str(call),
-                   "--output", str(destination)]
+                   "--output", str(destination), "--precision", args.precision]
         if bucket is not None:
             command.extend(["--profile-bucket", str(bucket)])
         started = time.monotonic()
@@ -138,7 +160,7 @@ def main(argv=None):
                                        stderr=subprocess.STDOUT, start_new_session=True)
             try:
                 row["exit_code"] = process.wait(timeout=args.timeout)
-                row.update(inspect_report(destination, case, call, bucket))
+                row.update(inspect_report(destination, case, call, bucket, args.precision, policy_sha256))
                 if row["exit_code"] != 0 and row["status"] == "COMPILED":
                     raise ValueError("Compiled report conflicts with failed process")
             except subprocess.TimeoutExpired:

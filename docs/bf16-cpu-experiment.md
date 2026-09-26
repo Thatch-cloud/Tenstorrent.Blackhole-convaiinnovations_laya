@@ -42,3 +42,25 @@ All discrete answers, structure and question order matched the accepted fixtures
 **The action probabilities are saturated in these examples. Their zero observed change does not validate action quality or compensate for the action-logit drift.** Only the single-option and empty-question decoded results were fully exact; the other four fixtures had numeric differences. The inherited checkpoint temperature-clamping warning also remains applicable.
 
 This run does not meet FP32 equivalence and does not promote BF16. No further model execution or compiler attempt was made. The full outputs, dtype events, state guards, numeric comparisons and process log are preserved in [the evidence index](../evidence/precision/bf16-cpu-v1/index.json); [summary.json](../evidence/precision/bf16-cpu-v1/summary.json) separates score, probability and confidence changes. Raw report SHA256: `ff6a38dc74d8d9b0503d85bb699708234a55846f9911d60a16653a40f4d40b67`.
+# Offline compilation follow-up
+
+The compiler harness now accepts `--precision mixed-bf16-fp32` only with
+`--mode tt-compile-only`. It reuses this experiment's conversion policy after
+verifying the original FP32 state, verifies the converted state against the
+checkpoint, and records the policy source hash and parameter/buffer inventory.
+The matrix verifier checks both state proofs and the expected parameter dtypes.
+Default runs remain FP32-source experiments.
+
+To attempt the five finite profiles on Linux without device nodes:
+
+```sh
+python scripts/run_offline_matrix.py --root "$PWD" --cases single-option \
+  --profile-buckets 32 64 128 256 512 --precision mixed-bf16-fp32 \
+  --timeout 1200 --output artifacts/offline-mixed-profiles
+```
+
+This option is also available in the independent offline compilation workflow.
+Compilation does not read dummy outputs or establish numerical parity, final
+lowered operator precision, physical memory fit or inference performance. The
+candidate remains experimental; the existing CPU differences and calibration
+limitations still apply. Actual compilation evidence is pending.
