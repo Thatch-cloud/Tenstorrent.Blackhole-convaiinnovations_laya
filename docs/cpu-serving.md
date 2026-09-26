@@ -54,5 +54,25 @@ ledger consumption. Startup/shutdown use `HostedRuntime`; signal-driven shutdown
 drains execution and retains unacknowledged receipts. Shutdown does not prove
 authoritative ledger reconciliation or release a hardware claim.
 
-This is reference-service composition, not a production image, remote control
-plane, automatic assignment source or physical accelerator acceptance.
+## Reference image acceptance
+
+`docker/cpu-reference.Dockerfile` builds an amd64 CPU image with the upstream
+checkout, checkpoint and golden fixtures included. The Python base is pinned by
+image digest; model inputs and direct reference dependencies are pinned. Build
+outputs record the source revision and installed Python/OS versions. Transitive
+dependencies and apt package resolution are not yet a reproducible build lock.
+
+The `CPU reference image acceptance` workflow builds the image and runs all three
+real CPU runtime tests as UID/GID 10001, without network, capabilities, privilege
+escalation or a writable root filesystem. Only `/tmp` is writable for test journals.
+It retains the image ID, inspection metadata, dependency versions and test log.
+It does not publish an image or deploy a service. A passed job proves CPU container
+acceptance only. Production journals require a persistent writable volume; never
+use the test's temporary journal layout for serving tenant work.
+
+The entry point binds loopback within its network namespace. A host service must
+share that namespace or provide an explicitly designed local transport; exposing
+a container port alone does not make a loopback listener reachable.
+
+Production image publication, remote control plane, automatic assignment,
+Compute lifecycle binding and physical accelerator acceptance remain unfinished.
