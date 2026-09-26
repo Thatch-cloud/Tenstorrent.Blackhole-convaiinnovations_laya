@@ -37,14 +37,22 @@ Maximum option-logit absolute error was `5.4836273193359375e-6`; maximum action-
 absolute error was `0.001953125` (within relative tolerance). Both loaded-state
 checks passed. The existing upstream temperature clamp remains in effect.
 
-The real model exercised sequence widths 32, 64, 128 and 512. Width 256 has only
-adapter boundary-test coverage. Across these fixtures 1,187 encoded tokens used
+The original fixture pass exercised sequence widths 32, 64, 128 and 512.
+Across these fixtures 1,187 encoded tokens used
 1,696 padded token slots. This is computational overhead, not billable usage or
-a measured performance result. Ten adapter tests passed, including preservation
+a measured performance result. Fourteen adapter tests passed, including preservation
 of masks, order, input ownership, all bucket boundaries, and rejection beyond
 the token/marker bounds.
 
-Remaining gates are full-model coverage at 256 and marker limits, offline
+The retained report also includes a five-width padding sweep using the pinned
+24-token single-option input. The full model ran at every proposed width,
+including 256, with 64 marker slots. All five comparisons passed; option-logit
+error was `1.0728836059570313e-6` and action-logit error was `0.00048828125`.
+This establishes a padding check at all shapes, not quality coverage for 256
+actual content tokens or 64 valid options. The complete repeated fixture pass
+still decoded identically, and post-sweep checkpoint integrity passed.
+
+Remaining gates are content-length and marker-limit quality coverage, offline
 compilation of these exact shapes, explicit precision acceptance, and physical
 parity under verified exclusive allocation. These CPU results establish neither
 BF16 quality nor accelerator capacity, latency, isolation or serving readiness.

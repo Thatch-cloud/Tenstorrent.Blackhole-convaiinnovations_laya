@@ -36,3 +36,12 @@ def test_no_silent_truncation(width, markers):
               torch.zeros((1, markers), dtype=torch.long), torch.ones((1, markers), dtype=torch.bool), torch.tensor([0]))
     with pytest.raises(ValueError):
         list(profile_rows(inputs, 0))
+
+
+@pytest.mark.parametrize("bucket", [True, 16, 33, 1024])
+def test_explicit_bucket_rejects_unsupported_or_truncating_values(bucket):
+    torch = pytest.importorskip("torch")
+    inputs = (torch.zeros((1, 32), dtype=torch.long), torch.ones((1, 32), dtype=torch.long),
+              torch.zeros((1, 1), dtype=torch.long), torch.ones((1, 1), dtype=torch.bool), torch.tensor([0]))
+    with pytest.raises(ValueError, match="Requested bucket"):
+        list(profile_rows(inputs, 0, sequence_bucket=bucket))

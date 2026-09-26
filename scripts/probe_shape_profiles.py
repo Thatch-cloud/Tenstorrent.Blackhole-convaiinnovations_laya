@@ -14,7 +14,7 @@ BUCKETS = (32, 64, 128, 256, 512)
 MARKERS = 64
 
 
-def profile_rows(inputs, pad_token_id):
+def profile_rows(inputs, pad_token_id, *, sequence_bucket=None):
     """Preserve masked positions and row order; never truncate or change accounting."""
     import torch
 
@@ -33,6 +33,10 @@ def profile_rows(inputs, pad_token_id):
     if markers.dtype != torch.bool or not torch.all((attention == 0) | (attention == 1)):
         raise ValueError("Invalid masks")
     bucket = next(size for size in BUCKETS if size >= width)
+    if sequence_bucket is not None:
+        if type(sequence_bucket) is not int or sequence_bucket not in BUCKETS or sequence_bucket < width:
+            raise ValueError("Requested bucket must be supported and cannot truncate")
+        bucket = sequence_bucket
     for row in range(rows):
         padded_ids = ids.new_full((1, bucket), pad_token_id)
         padded_attention = attention.new_zeros((1, bucket))
@@ -119,6 +123,20 @@ def main(argv=None):
             expected = json.loads(checked_file(reference_path.parent, case["answers"]["file"], case["answers"]["sha256"]).read_text())
             row["decoded"] = decoded_metrics(actual, expected)
             report["cases"].append(row)
+        # Exercise every graph shape with the same pinned content, isolating padding
+        # effects from semantic differences between questions. This is not a claim
+        # of full-length context or maximum-option quality coverage.
+        single = next(case for case in reference["cases"] if case["id"] == "single-option")
+        baseline = load_call(reference_path.parent, single["id"], single["forward_calls"][0])
+        report["padding_sweep"] = []
+        with torch.no_grad():
+            for bucket in BUCKETS:
+                profile, = profile_rows(tuple(baseline[name] for name in INPUTS), agent.tok.pad_token_id, sequence_bucket=bucket)
+                logits, actions = original_forward(*profile)
+                report["padding_sweep"].append({"sequence_bucket": bucket, "case": single["id"],
+                    "encoded_tokens": int(profile[1].sum()), "outputs": {
+                        "logits": compare_arrays(logits[:, :baseline["logits"].shape[1]].numpy(), baseline["logits"].numpy(), 1e-4, 1e-4),
+                        "act_logits": compare_arrays(actions.numpy(), baseline["act_logits"].numpy(), 1e-4, 1e-4)}})
         report["final_loaded_state_integrity"] = verify_loaded_state(model, checkpoint, expected_sha256=digest)
         report["status"] = "OBSERVED"
     except Exception as exc:
