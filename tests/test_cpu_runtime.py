@@ -21,6 +21,7 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from laya_tt.bootstrap import RuntimeApplication
 from laya_tt.cpu_backend import load_cpu_backend
 from laya_tt.grants import DecisionGrantVerifier
+from laya_tt.hosting import HostedRuntime
 from laya_tt.ledger import ExecutionJournal
 from laya_tt.ledger_protocol import encode_consumption
 from laya_tt.service import RuntimeIdentity
@@ -45,7 +46,7 @@ async def invoke(application, raw, grant):
     scope = {"type": "http", "path": "/v1/decisions", "method": "POST",
              "headers": [(b"content-type", b"application/json"),
                          (b"x-thatch-admission-grant", base64.b64encode(grant))]}
-    await asyncio.wait_for(application.asgi(scope, incoming.get, send), 60)
+    await asyncio.wait_for(application(scope, incoming.get, send), 60)
     return outgoing
 
 
@@ -53,6 +54,12 @@ async def invoke(application, raw, grant):
                      "requires explicit CPU integration, pinned assets and Linux peer credentials")
 class CpuRuntimeIntegrationTests(unittest.TestCase):
     def test_pinned_answers_signed_admission_real_peer_and_durable_outbox(self):
+        self.exercise(False)
+
+    def test_hosted_lifespan_real_model_and_automatic_receipt_delivery(self):
+        self.exercise(True)
+
+    def exercise(self, hosted):
         root = Path(__file__).resolve().parents[1]
         reference_path = root / "tests/fixtures/cpu-reference/reference.json"
         raw_reference = reference_path.read_bytes()
@@ -86,8 +93,9 @@ class CpuRuntimeIntegrationTests(unittest.TestCase):
                 def self_test():
                     output = backend.execute(prepared.payload)
                     return output["answers"] == expected and output["encoded_tokens"] == prepared.encoded_tokens
-                app.start(self_test)
-                self.assertTrue(app.service.readiness()["ready"])
+                if not hosted:
+                    app.start(self_test)
+                    self.assertTrue(app.service.readiness()["ready"])
                 now = int(time.time() * 1000)
                 context = dict(schema_version="1", request_id="request", execution_attempt_id="attempt",
                     usage_event_id="usage", tenant_id="tenant", key_id="key", runtime_generation=runtime.runtime_generation,
@@ -95,7 +103,7 @@ class CpuRuntimeIntegrationTests(unittest.TestCase):
                     checkpoint_revision=runtime.checkpoint_revision, issued_at_unix_ms=now, deadline_unix_ms=now+60000,
                     max_question_rows=prepared.question_rows, max_encoded_tokens=prepared.encoded_tokens,
                     request_sha256=hashlib.sha256(raw).hexdigest())
-                seen, errors = [], []
+                seen, errors, retained = [], [], []
                 with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as listener:
                     listener.bind(str(path))
                     path.chmod(0o600)
@@ -134,15 +142,52 @@ class CpuRuntimeIntegrationTests(unittest.TestCase):
                                     else:
                                         self.assertEqual(lines[0], "POST /v1/ledger/receipts HTTP/1.1")
                                         self.assertEqual(hashlib.sha256(body).hexdigest(), headers["x-thatch-receipt-sha256"])
+                                        pending = ExecutionJournal(app.journal.path).pending_receipts()
+                                        self.assertEqual(len(pending), 1)
+                                        self.assertEqual(pending[0].payload_json.encode(), body)
+                                        retained.append(pending[0])
                                         status, response = 200, json.dumps({"receipt_id": headers["x-thatch-receipt-id"],
                                             "payload_sha256": headers["x-thatch-receipt-sha256"]}).encode()
                                     stream.sendall(f"HTTP/1.1 {status} Result\r\nContent-Length: {len(response)}\r\nConnection: close\r\n\r\n".encode()+response)
                         except BaseException as error:
                             errors.append(error)
                     thread = threading.Thread(target=peer, daemon=True)
-                    thread.start()
+                    if not hosted:
+                        thread.start()
                     try:
-                        messages = asyncio.run(invoke(app, raw, signed(key, asdict(runtime), context)))
+                        grant = signed(key, asdict(runtime), context)
+                        async def through_lifespan():
+                            host = HostedRuntime(app, self_test=self_test, receipt_interval=.01)
+                            events, started = asyncio.Queue(), asyncio.Event()
+                            lifecycle_messages = []
+                            async def send(message):
+                                lifecycle_messages.append(message)
+                                started.set()
+                            await events.put({"type": "lifespan.startup"})
+                            task = asyncio.create_task(host({"type": "lifespan"}, events.get, send))
+                            try:
+                                await asyncio.wait_for(started.wait(), 60)
+                                self.assertEqual(lifecycle_messages[0]["type"], "lifespan.startup.complete")
+                                self.assertTrue(app.service.readiness()["ready"])
+                                # Grant lifetime starts after the real startup self-test.
+                                issued = int(time.time() * 1000)
+                                context.update(issued_at_unix_ms=issued, deadline_unix_ms=issued+60000)
+                                thread.start()
+                                response = await invoke(host, raw, signed(key, asdict(runtime), context))
+                                async def acknowledged():
+                                    while not retained or ExecutionJournal(app.journal.path).pending_receipts():
+                                        await asyncio.sleep(.01)
+                                await asyncio.wait_for(acknowledged(), 10)
+                                await events.put({"type": "lifespan.shutdown"})
+                                await asyncio.wait_for(task, 30)
+                                self.assertEqual(lifecycle_messages[-1]["type"], "lifespan.shutdown.complete")
+                                self.assertEqual(app.service.readiness()["state"], "stopped")
+                                return response
+                            finally:
+                                if not task.done():
+                                    task.cancel()
+                                    await asyncio.gather(task, return_exceptions=True)
+                        messages = asyncio.run(through_lifespan() if hosted else invoke(app.asgi, raw, grant))
                         self.assertEqual(messages[0]["status"], 200, messages)
                         response = json.loads(messages[1]["body"])
                         self.assertEqual(response["answers"], expected)
@@ -150,16 +195,19 @@ class CpuRuntimeIntegrationTests(unittest.TestCase):
                         self.assertEqual(response["usage"]["encoded_tokens"], prepared.encoded_tokens)
                         self.assertEqual(response["request_id"], context["request_id"])
                         self.assertEqual(app.journal.pending_consumptions(), [])
-                        pending = app.journal.pending_receipts()
-                        self.assertEqual(len(pending), 1)
-                        self.assertEqual(ExecutionJournal(app.journal.path).pending_receipts(), pending)
-                        self.assertEqual(app.deliver_pending(), 1)
+                        if not hosted:
+                            pending = app.journal.pending_receipts()
+                            self.assertEqual(len(pending), 1)
+                            self.assertEqual(ExecutionJournal(app.journal.path).pending_receipts(), pending)
+                            self.assertEqual(app.deliver_pending(), 1)
                         self.assertEqual(ExecutionJournal(app.journal.path).pending_receipts(), [])
                     finally:
-                        thread.join(11)
+                        if thread.ident is not None:
+                            thread.join(11)
                     self.assertFalse(thread.is_alive())
                     self.assertEqual(errors, [])
-                    self.assertEqual(seen[1][1], pending[0].payload_json.encode())
+                    self.assertEqual(len(retained), 1)
+                    self.assertEqual(seen[1][1], retained[0].payload_json.encode())
                     receipt = json.loads(seen[1][1])
                     self.assertEqual(receipt["outcome"], "completed")
                     self.assertEqual(receipt["observation"]["question_rows"], prepared.question_rows)

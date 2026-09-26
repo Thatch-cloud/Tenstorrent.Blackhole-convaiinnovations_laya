@@ -81,3 +81,13 @@ Cancelling the lifecycle await does not abandon an in-progress blocking operatio
 A stuck model self-test still requires supervisor recovery; no unsafe thread kill,
 backend destruction or card reassignment is performed. This wrapper adds no
 listener, model loader, key loader, device claim or production deployment.
+
+
+The opt-in CPU runtime suite also exercises HostedRuntime with the real loaded
+checkpoint. It sends lifespan startup, waits for the golden model self-test,
+issues a fresh signed grant, checks inference answers and waits for automatic
+receipt delivery. The fixture bridge opens a fresh journal connection before
+acknowledging the original receipt bytes. The test then sends lifespan shutdown
+and verifies the actual worker reaches stopped state. It never calls the receipt
+pump manually in the hosted path. The direct composition test remains alongside
+it, and both still use a recording fixture ledger rather than platform admission.
