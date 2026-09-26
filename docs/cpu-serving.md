@@ -66,13 +66,23 @@ The `CPU reference image acceptance` workflow builds the image and runs all thre
 real CPU runtime tests as UID/GID 10001, without network, capabilities, privilege
 escalation or a writable root filesystem. Only `/tmp` is writable for test journals.
 It retains the image ID, inspection metadata, dependency versions and test log.
-It does not publish an image or deploy a service. A passed job proves CPU container
-acceptance only. Production journals require a persistent writable volume; never
+By default it does not publish an image. A manual dispatch from `main` with
+`publish=true` pushes the already tested image to
+`ghcr.io/thatch-cloud/laya-cpu-reference` using the repository's scoped Actions
+token. Tags include source commit, run ID and attempt; there is no moving `latest`
+tag. It resolves a registry digest, checks the registry manifest's config digest
+against the tested image ID, pulls by digest, and verifies source/user identity.
+The retained `release.json` and `pull-reference.txt` identify the verified artifact.
+Consumers must pin the registry pull reference, not the local image config ID.
+Package visibility and fleet pull credentials are separate provisioning concerns.
+
+A passed job proves CPU container acceptance only; publication does not deploy a
+service. Production journals require a persistent writable volume; never
 use the test's temporary journal layout for serving tenant work.
 
 The entry point binds loopback within its network namespace. A host service must
 share that namespace or provide an explicitly designed local transport; exposing
 a container port alone does not make a loopback listener reachable.
 
-Production image publication, remote control plane, automatic assignment,
+TT image publication, remote control plane, automatic assignment,
 Compute lifecycle binding and physical accelerator acceptance remain unfinished.

@@ -2,6 +2,7 @@ FROM python:3.11-slim-bookworm@sha256:4b4c524dc3dce996864e030c7bd9c6b0e517597189
 
 ARG SOURCE_REVISION
 LABEL org.opencontainers.image.title="Laya CPU reference service" \
+      org.opencontainers.image.source="https://github.com/Thatch-cloud/Tenstorrent.Blackhole-convaiinnovations_laya" \
       org.opencontainers.image.revision=$SOURCE_REVISION
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 OMP_NUM_THREADS=1 \
     HF_HUB_DISABLE_TELEMETRY=1 HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
