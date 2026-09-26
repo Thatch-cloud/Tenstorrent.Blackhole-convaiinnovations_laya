@@ -54,3 +54,30 @@ The Unix ledger peer in this test is a recording fixture. It verifies the origin
 consumption/receipt bytes and returns exact acknowledgments, but is not a durable
 reservation authority. A pass demonstrates the real CPU runtime boundary, not
 shared-platform admission/accounting, production deployment or TT acceptance.
+
+
+## ASGI server lifecycle
+
+`laya_tt.hosting.HostedRuntime(application, self_test=loaded_model_self_test)`
+wraps an already assigned and constructed RuntimeApplication with the
+[ASGI lifespan protocol](https://asgi.readthedocs.io/en/latest/specs/lifespan.html).
+Serve the wrapper in exactly one process and event loop with lifespan enabled.
+The same generation cannot be restarted by a second lifespan or another loop.
+
+Startup waits for the supplied loaded-model self-test. HTTP delegates only after
+startup completes and on the owning event loop. A receipt task runs bounded
+eight-record batches outside the event loop, retrying unavailable delivery after
+a configurable interval. Unexpected journal/delivery errors withdraw HTTP
+availability and drain the worker. Exceptions are not exposed in lifecycle messages.
+
+Shutdown closes HTTP admission, cancels queued work and waits for worker drain,
+then stops the receipt pump and attempts one final bounded batch. Incomplete drain
+or an unexpected delivery error reports shutdown failure. A bridge outage leaves
+the durable outbox intact and does not prevent an otherwise clean worker shutdown.
+Shutdown completion is not proof of complete receipt delivery or device release.
+The supervisor must retain/recover the journal and reconcile authoritative holds.
+
+Cancelling the lifecycle await does not abandon an in-progress blocking operation.
+A stuck model self-test still requires supervisor recovery; no unsafe thread kill,
+backend destruction or card reassignment is performed. This wrapper adds no
+listener, model loader, key loader, device claim or production deployment.

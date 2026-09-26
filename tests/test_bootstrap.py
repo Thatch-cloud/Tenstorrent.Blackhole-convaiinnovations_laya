@@ -152,3 +152,27 @@ def test_existing_intent_prevents_composition(tmp_path):
         RuntimeApplication(backend=Backend(), runtime=RUNTIME, verify_grant=lambda _: {},
             policy_revision="policy", journal_path=journal.path,
             ledger_socket=tmp_path / "ledger.sock", ledger_uid=1000)
+
+def test_hosted_lifespan_drives_actual_runtime_readiness_and_drain(setup):
+    import asyncio
+    from laya_tt.hosting import HostedRuntime
+
+    app, backend, raw, context, requests = setup
+    host = HostedRuntime(app, self_test=lambda: True, receipt_interval=.01)
+
+    async def run():
+        incoming = asyncio.Queue()
+        await incoming.put({"type": "lifespan.startup"})
+        messages = []
+
+        async def send(message):
+            messages.append(message)
+            if message["type"] == "lifespan.startup.complete":
+                assert app.service.readiness()["ready"] is True
+                await incoming.put({"type": "lifespan.shutdown"})
+
+        await host({"type": "lifespan"}, incoming.get, send)
+        assert [m["type"] for m in messages] == [
+            "lifespan.startup.complete", "lifespan.shutdown.complete"]
+        assert app.service.readiness()["state"] == "stopped"
+    asyncio.run(run())
