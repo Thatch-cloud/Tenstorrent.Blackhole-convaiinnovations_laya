@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "source_commit": "5064e41c973d443deee7035a057f6cf35f9e751c",
+  "run_id": "36246644904",
+  "run_attempt": "1",
+  "image_config_digest": "sha256:988c219921e8e41e7395743153c378752bf98c9ddf0dc153171416c93a671ae8",
+  "pull_reference": "ghcr.io/thatch-cloud/laya-cpu-reference@sha256:b4b44c64e32f2c7ca1ff3a4ce15df85dcdb15d5d22e6f348ded596ead2c84423",
+  "cpu_container_acceptance": true,
+  "registry_roundtrip": true,
+  "physical_acceptance": false,
+  "deployed_acceptance": false
+}
