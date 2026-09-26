@@ -51,7 +51,7 @@ class ExecutionJournal:
             db.execute("PRAGMA journal_mode=WAL")
             db.execute("BEGIN IMMEDIATE")
             version = db.execute("PRAGMA user_version").fetchone()[0]
-            if version not in (0, 1):
+            if version not in (0, 1, 2):
                 raise JournalConflict("unsupported journal schema version")
             if version == 0:
                 if db.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchone():
@@ -71,6 +71,15 @@ class ExecutionJournal:
                     acknowledged INTEGER NOT NULL DEFAULT 0,
                     UNIQUE(tenant, attempt))""")
                 db.execute("PRAGMA user_version=1")
+            if version in (0, 1):
+                db.execute("""CREATE TABLE consumption_intents (
+                    tenant TEXT NOT NULL, attempt TEXT NOT NULL,
+                    reservation TEXT NOT NULL, usage_event TEXT NOT NULL,
+                    context_json TEXT NOT NULL, consumption BLOB NOT NULL,
+                    state TEXT NOT NULL CHECK(state IN ('pending','acknowledged')),
+                    PRIMARY KEY(tenant, attempt), UNIQUE(tenant, reservation),
+                    UNIQUE(tenant, usage_event))""")
+                db.execute("PRAGMA user_version=2")
             db.commit()
 
     @contextmanager
@@ -97,6 +106,46 @@ class ExecutionJournal:
         if type(value) is not int or value < 0:
             raise ValueError(name + " must be a nonnegative integer")
 
+    def begin_consumption(self, context, runtime, question_rows, encoded_tokens):
+        """Durably record verified prepared metadata BEFORE the single network call.
+
+        A pending intent is uncertain, even if the caller observed a local error.
+        Neither retries nor expiry may erase it. No customer input is persisted.
+        """
+        from .ledger_protocol import encode_consumption
+        context = json.loads(_json(dict(context)))
+        payload = encode_consumption(context, runtime, question_rows=question_rows,
+                                     encoded_tokens=encoded_tokens)
+        try:
+            with self._transaction() as db:
+                if db.execute("""SELECT 1 FROM executions WHERE tenant=? AND
+                    (attempt=? OR reservation=? OR usage_event=?)""",
+                    (context["tenant_id"], context["execution_attempt_id"],
+                     context["reservation_id"], context["usage_event_id"])).fetchone():
+                    raise JournalReplay("consumption identity already has execution evidence")
+                db.execute("INSERT INTO consumption_intents VALUES (?,?,?,?,?,?,?)",
+                    (context["tenant_id"], context["execution_attempt_id"],
+                     context["reservation_id"], context["usage_event_id"],
+                     _json(context), payload, "pending"))
+        except sqlite3.IntegrityError:
+            raise JournalReplay("consumption intent already exists") from None
+        return payload
+
+    def consumption_acknowledged(self, context, payload):
+        """Record committed remote success; this alone does not authorize execution."""
+        with self._transaction() as db:
+            changed = db.execute("""UPDATE consumption_intents SET state='acknowledged'
+                WHERE tenant=? AND attempt=? AND context_json=? AND consumption=? AND state='pending'""",
+                (context["tenant_id"], context["execution_attempt_id"], _json(dict(context)), payload))
+            if changed.rowcount != 1:
+                raise JournalConflict("consumption acknowledgment differs from pending intent")
+
+    def pending_consumptions(self):
+        """Recovery evidence only: never replay these requests or infer execution."""
+        with self._connect() as db:
+            rows = db.execute("SELECT * FROM consumption_intents ORDER BY rowid").fetchall()
+        return [dict(row) for row in rows]
+
     def admitted(self, context, question_rows, encoded_tokens, runtime):
         context = dict(context)
         self._validator.validate(context)
@@ -112,10 +161,26 @@ class ExecutionJournal:
             raise ValueError("invalid backend identity")
         try:
             with self._transaction() as db:
+                intent = db.execute("SELECT * FROM consumption_intents WHERE tenant=? AND attempt=?",
+                    (context["tenant_id"], context["execution_attempt_id"])).fetchone()
+                if intent is not None:
+                    from .ledger_protocol import encode_consumption
+                    expected = encode_consumption(context, runtime, question_rows=question_rows,
+                                                  encoded_tokens=encoded_tokens)
+                    if (intent["state"] != "acknowledged" or intent["context_json"] != _json(context)
+                            or intent["consumption"] != expected):
+                        raise JournalConflict("admission differs from acknowledged consumption")
+                elif db.execute("""SELECT 1 FROM consumption_intents WHERE tenant=? AND
+                    (reservation=? OR usage_event=?)""", (context["tenant_id"],
+                    context["reservation_id"], context["usage_event_id"])).fetchone():
+                    raise JournalReplay("admission conflicts with a consumption intent")
                 db.execute("INSERT INTO executions (tenant,attempt,reservation,usage_event,context_json,runtime_json,question_rows,encoded_tokens,state,updated_ms) VALUES (?,?,?,?,?,?,?,?,?,?)",
                     (context["tenant_id"], context["execution_attempt_id"], context["reservation_id"],
                      context["usage_event_id"], _json(context), _json(runtime), question_rows,
                      encoded_tokens, "admitted", int(time.time()*1000)))
+                if intent is not None:
+                    db.execute("DELETE FROM consumption_intents WHERE tenant=? AND attempt=?",
+                               (context["tenant_id"], context["execution_attempt_id"]))
         except sqlite3.IntegrityError:
             raise JournalReplay("local reservation, attempt or usage event was already admitted") from None
 
@@ -245,7 +310,8 @@ class ExecutionJournal:
             pending = db.execute(
                 "SELECT 1 FROM executions WHERE state IN ('admitted','running') LIMIT 1"
             ).fetchone()
-        if pending is not None:
+            pending_consumption = db.execute("SELECT 1 FROM consumption_intents LIMIT 1").fetchone()
+        if pending is not None or pending_consumption is not None:
             raise JournalConflict("execution recovery is required before startup")
 
     def unresolved(self):

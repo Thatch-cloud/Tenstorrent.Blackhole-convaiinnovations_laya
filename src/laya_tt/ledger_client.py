@@ -84,6 +84,26 @@ class LocalLedgerClient:
         except Exception:
             raise LedgerUnavailable("ledger consumption not acknowledged") from None
 
+    def journaled_consumption(self, journal):
+        """Build the admission callback using the SAME journal as DecisionService.
+
+        Crash/uncertainty retains the intent, including after a remote ACK but
+        before local admission. Reconciliation must never replay consumption.
+        """
+        from .ledger import ExecutionJournal
+        if not isinstance(journal, ExecutionJournal):
+            raise ValueError("durable execution journal required")
+
+        def consume(context, question_rows, encoded_tokens):
+            context = _json(json.dumps(dict(context), allow_nan=False))
+            payload = journal.begin_consumption(context, self._runtime, question_rows, encoded_tokens)
+            if self.consume_reservation(context, question_rows, encoded_tokens) is not True:
+                raise LedgerUnavailable("ledger consumption not acknowledged")
+            journal.consumption_acknowledged(context, payload)
+            return True
+
+        return consume
+
     def deliver_receipt(self, receipt: Receipt) -> bool:
         """Return True only for exact ACK; caller retains outbox evidence otherwise."""
         try:

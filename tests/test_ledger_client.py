@@ -258,3 +258,96 @@ def test_unsupported_peer_authentication_fails_closed(monkeypatch, tmp_path):
     client = LocalLedgerClient(tmp_path / "unused.sock", 1000, RUNTIME)
     with pytest.raises(LedgerUnavailable):
         client.consume_reservation(claims(), 2, 17)
+
+
+def test_journal_intent_precedes_network_and_survives_uncertain_response(monkeypatch, tmp_path):
+    from laya_tt.ledger import ExecutionJournal, JournalConflict, JournalReplay
+    journal = ExecutionJournal(tmp_path / "journal.sqlite")
+    client = LocalLedgerClient(tmp_path / "unused.sock", 1000, RUNTIME)
+    context = claims()
+    calls = []
+
+    def uncertain(*args):
+        calls.append(args)
+        reopened = ExecutionJournal(journal.path)
+        assert reopened.pending_consumptions()[0]["state"] == "pending"
+        with pytest.raises(JournalConflict):
+            reopened.check_startup()
+        raise LedgerUnavailable("lost acknowledgment")
+
+    monkeypatch.setattr(client, "consume_reservation", uncertain)
+    consume = client.journaled_consumption(journal)
+    with pytest.raises(LedgerUnavailable):
+        consume(context, 2, 17)
+    with pytest.raises(JournalReplay):
+        consume(context, 2, 17)
+    assert len(calls) == 1
+    assert journal.pending_receipts() == []
+    with pytest.raises(JournalConflict):
+        journal.admitted(context, 2, 17, RUNTIME)
+    assert journal.pending_consumptions()[0]["state"] == "pending"
+
+
+def test_acknowledged_intent_moves_atomically_to_matching_admission(monkeypatch, tmp_path):
+    from laya_tt.ledger import ExecutionJournal, JournalConflict, JournalReplay
+    journal = ExecutionJournal(tmp_path / "journal.sqlite")
+    client = LocalLedgerClient(tmp_path / "unused.sock", 1000, RUNTIME)
+    monkeypatch.setattr(client, "consume_reservation", lambda *args: True)
+    context = claims()
+    assert client.journaled_consumption(journal)(context, 2, 17) is True
+    reopened = ExecutionJournal(journal.path)
+    assert reopened.pending_consumptions()[0]["state"] == "acknowledged"
+    with pytest.raises(JournalConflict):
+        reopened.check_startup()
+    with pytest.raises(JournalConflict):
+        reopened.admitted(context, 2, 18, RUNTIME)
+    assert reopened.pending_consumptions()[0]["state"] == "acknowledged"
+    reopened.admitted(context, 2, 17, RUNTIME)
+    assert reopened.pending_consumptions() == []
+    assert reopened.status(context)["state"] == "admitted"
+    with pytest.raises(JournalReplay):
+        client.journaled_consumption(reopened)(context, 2, 17)
+
+
+def test_intent_identity_is_unique_across_connections(tmp_path):
+    from concurrent.futures import ThreadPoolExecutor
+    from laya_tt.ledger import ExecutionJournal, JournalReplay
+    path = tmp_path / "journal.sqlite"
+    first, second = ExecutionJournal(path), ExecutionJournal(path)
+    context = claims()
+
+    def attempt(journal):
+        try:
+            journal.begin_consumption(context, RUNTIME, 2, 17)
+            return True
+        except JournalReplay:
+            return False
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        assert sorted(pool.map(attempt, [first, second])) == [False, True]
+    for change in ({"execution_attempt_id": "different"},
+                   {"reservation_id": "different"}, {"usage_event_id": "different"}):
+        with pytest.raises(JournalReplay):
+            first.begin_consumption(dict(context, **change), RUNTIME, 2, 17)
+    assert len(first.pending_consumptions()) == 1
+
+
+def test_version_one_upgrade_preserves_execution_evidence(tmp_path):
+    import sqlite3
+    from laya_tt.ledger import ExecutionJournal
+    path = tmp_path / "journal.sqlite"
+    journal = ExecutionJournal(path)
+    context = claims()
+    journal.admitted(context, 2, 17, RUNTIME)
+    journal.not_started(context, "cancelled")
+    original = journal.pending_receipts()
+    # Reproduce the previous schema: no intent table and user_version=1.
+    with sqlite3.connect(path) as db:
+        db.execute("DROP TABLE consumption_intents")
+        db.execute("PRAGMA user_version=1")
+    reopened = ExecutionJournal(path)
+    assert reopened.pending_receipts() == original
+    assert reopened.pending_consumptions() == []
+    reopened.check_startup()
+    with sqlite3.connect(path) as db:
+        assert db.execute("PRAGMA user_version").fetchone()[0] == 2
