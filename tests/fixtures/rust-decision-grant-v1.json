@@ -1,0 +1,32 @@
+{
+  "public_key_hex": "197f6b23e16c8532c6abc838facd5ea789be0c76b2920334039bfa8b3d368d61",
+  "grant": "eyJhbGciOiJFZDI1NTE5Iiwia2lkIjoidGVzdC1rZXkiLCJ0eXAiOiJ0aGF0Y2gtZGVjaXNpb24tZ3JhbnQrandzIn0.eyJjb250ZXh0Ijp7ImNoZWNrcG9pbnRfcmV2aXNpb24iOiJhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhIiwiZGVhZGxpbmVfdW5peF9tcyI6MzAwMCwiZXhlY3V0aW9uX2F0dGVtcHRfaWQiOiJhdHRlbXB0IiwiaXNzdWVkX2F0X3VuaXhfbXMiOjEwMDAsImtleV9pZCI6ImtleSIsIm1heF9lbmNvZGVkX3Rva2VucyI6MjAsIm1heF9xdWVzdGlvbl9yb3dzIjoyLCJtb2RlbCI6ImxheWEtZW5nbGlzaCIsInBvbGljeV9yZXZpc2lvbiI6InBvbGljeSIsInJlcXVlc3RfaWQiOiJyZXF1ZXN0IiwicmVxdWVzdF9zaGEyNTYiOiJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiIiwicmVzZXJ2YXRpb25faWQiOiJyZXNlcnZhdGlvbiIsInJ1bnRpbWVfZ2VuZXJhdGlvbiI6ImdlbmVyYXRpb24iLCJzY2hlbWFfdmVyc2lvbiI6IjEiLCJ0ZW5hbnRfaWQiOiJ0ZW5hbnQiLCJ1c2FnZV9ldmVudF9pZCI6InVzYWdlIn0sImhvc3RfaWQiOiJob3N0IiwiaXNzdWVyIjoiYXV0aG9yaXR5IiwicnVudGltZSI6eyJiYWNrZW5kIjoiY3B1LXJlZmVyZW5jZSIsImNoZWNrcG9pbnRfcmV2aXNpb24iOiJhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhIiwibW9kZWwiOiJsYXlhLWVuZ2xpc2giLCJydW50aW1lX2dlbmVyYXRpb24iOiJnZW5lcmF0aW9uIiwicnVudGltZV9yZXZpc2lvbiI6ImJ1aWxkIn0sInNjaGVtYV92ZXJzaW9uIjoiMSJ9.KcXfmwMpxF8YjUTZeAZm7DmSiGWOuRDGUsoNXveBy9RpliWp5RJnTSrMdgV-g_n6hb3CGoHHNAtuM9BObRenDg",
+  "context": {
+    "schema_version": "1",
+    "request_id": "request",
+    "execution_attempt_id": "attempt",
+    "usage_event_id": "usage",
+    "tenant_id": "tenant",
+    "key_id": "key",
+    "runtime_generation": "generation",
+    "policy_revision": "policy",
+    "reservation_id": "reservation",
+    "model": "laya-english",
+    "checkpoint_revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "issued_at_unix_ms": 1000,
+    "deadline_unix_ms": 3000,
+    "max_question_rows": 2,
+    "max_encoded_tokens": 20,
+    "request_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "runtime": {
+    "model": "laya-english",
+    "checkpoint_revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "runtime_revision": "build",
+    "runtime_generation": "generation",
+    "backend": "cpu-reference"
+  },
+  "issuer": "authority",
+  "host_id": "host",
+  "verify_at_unix_ms": 2000
+}

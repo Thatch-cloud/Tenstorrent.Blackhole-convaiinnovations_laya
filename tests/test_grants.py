@@ -167,8 +167,9 @@ def test_signed_grant_admission_still_requires_payload_binding_and_consumption()
     assert len(calls) == 2  # The signature never bypasses single-use consumption.
 
 
-def test_portable_signed_fixture():
+@pytest.mark.parametrize("name", ["decision-grant-v1.json", "rust-decision-grant-v1.json"])
+def test_portable_signed_fixture(name):
     from pathlib import Path
-    value = json.loads((Path(__file__).parent / "fixtures" / "decision-grant-v1.json").read_text())
+    value = json.loads((Path(__file__).parent / "fixtures" / name).read_text())
     verify = verifier(public_keys={"test-key": bytes.fromhex(value["public_key_hex"])})
     assert verify(value["grant"].encode("ascii")) == value["context"]

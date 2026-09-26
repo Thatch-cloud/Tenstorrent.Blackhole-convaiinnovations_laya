@@ -39,6 +39,8 @@ issuer must commit the matching reservation before returning a grant, use the sa
 stable host and runtime binding, and preserve uncertain reservations for recovery.
 
 This implements the runtime verifier and a proposed versioned interoperability
-profile. Platform signing, Rust cross-language fixture verification, key provisioning,
-and end-to-end authenticated gateway composition remain required before activation.
+profile. The paired Rust issuer verifies the original Python fixture and asserts its emitted
+bytes against `tests/fixtures/rust-decision-grant-v1.json`; the runtime verifies
+both fixtures. Platform issuer composition, key provisioning, and end-to-end
+authenticated gateway delivery remain required before activation.
 The tests' deterministic signing seed is public test material only.
