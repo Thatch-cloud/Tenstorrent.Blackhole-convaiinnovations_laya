@@ -1,12 +1,22 @@
 {
   "schema_version": 1,
-  "source_commit": "5064e41c973d443deee7035a057f6cf35f9e751c",
-  "run_id": "36246644904",
+  "source_commit": "5bf909c1fe09fc70158b78b41ffc56ced59ccbd8",
+  "run_id": "36247657072",
   "run_attempt": "1",
-  "image_config_digest": "sha256:988c219921e8e41e7395743153c378752bf98c9ddf0dc153171416c93a671ae8",
-  "pull_reference": "ghcr.io/thatch-cloud/laya-cpu-reference@sha256:b4b44c64e32f2c7ca1ff3a4ce15df85dcdb15d5d22e6f348ded596ead2c84423",
+  "image_config_digest": "sha256:a9ad203ec02f6c3c68dc114661a2f75ae8d58d69bc0882004aa6c47442ced331",
+  "pull_reference": "ghcr.io/thatch-cloud/laya-cpu-reference@sha256:8caca3530461eb55683b2f45a3dbc39f9646daae667176c90c2e28f260816283",
   "cpu_container_acceptance": true,
   "registry_roundtrip": true,
+  "tested_launch_profiles": [
+    {
+      "uid": 10001,
+      "listen_host": "127.0.0.1"
+    },
+    {
+      "uid": 1000,
+      "listen_host": "0.0.0.0"
+    }
+  ],
   "physical_acceptance": false,
   "deployed_acceptance": false
 }
