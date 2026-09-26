@@ -1,0 +1,20 @@
+[
+  {
+    "model": "laya-rl-agent",
+    "answers": {
+      "refund": {
+        "type": "noul",
+        "noul": 0.8709,
+        "confidence": 0.8709,
+        "answer_confidence": 0.8709,
+        "action": {
+          "act_probability": 1.0
+        }
+      }
+    },
+    "usage": {
+      "input_tokens": 512,
+      "output_tokens": 0
+    }
+  }
+]

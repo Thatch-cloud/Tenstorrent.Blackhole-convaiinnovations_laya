@@ -1,0 +1,14 @@
+# Preserve hashed evidence bytes across Windows and Linux checkouts.
+configs/*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+configs/compiler/*.ttsys -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+tests/fixtures/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+evidence/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+*.py text eol=lf
+*.md text eol=lf
+*.toml text eol=lf
+*.lock text eol=lf
+
+.gitattributes text eol=lf
+.gitignore text eol=lf
+configs/descriptor-schemas/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+configs/compiler/migrated-p150/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol

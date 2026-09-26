@@ -1,0 +1,219 @@
+namespace tt.target;
+
+struct Dim2d {
+  y: int;
+  x: int;
+}
+
+struct Dim2dRange {
+  loc: Dim2d;
+  size: Dim2d;
+}
+
+enum Arch: uint {
+  Wormhole_b0,
+  Blackhole,
+  Quasar
+}
+
+enum DataType: uint16 {
+  Float32,
+  Float16,
+  BFloat16,
+  BFP_Float8,
+  BFP_BFloat8,
+  BFP_Float4,
+  BFP_BFloat4,
+  BFP_Float2,
+  BFP_BFloat2,
+  UInt32,
+  UInt16,
+  UInt8,
+  Int32,
+
+  // Unsupported data types
+  // Special handling is required if a user/frontend attempts to create or retrieve a tensor with these data types
+  Float64,
+  Int64,
+  UInt64,
+  Int16,
+  Int8,
+  Bool
+}
+
+enum OOBVal: ushort {
+  Undef,
+  Zero,
+  One,
+  Inf,
+  NegInf,
+}
+
+enum MemorySpace: ushort {
+  System,
+  SystemMMIO,
+  DeviceDRAM,
+  DeviceL1,
+}
+
+enum ChipCapability: uint32 (bit_flags) {
+  HostMMIO,
+}
+
+enum TensorLayout: ushort {
+  RowMajor,
+  Tile,
+  Invalid,
+}
+
+enum BufferType: ushort {
+  DRAM,
+  L1,
+  SystemMemory,
+  L1Small,
+  Trace,
+}
+
+table ChipDesc {
+  arch: Arch;
+  grid_size: Dim2d;
+  coord_translation_offsets: Dim2d;
+  l1_size: uint64;
+  num_dram_channels: uint32;
+  dram_channel_size: uint64;
+  noc_l1_address_align_bytes: uint32;
+  pcie_address_align_bytes: uint32;
+  noc_dram_address_align_bytes: uint32;
+  l1_unreserved_base: uint32;
+  erisc_l1_unreserved_base: uint32;
+  dram_unreserved_base: uint32;
+  dram_unreserved_end: uint32;
+  supported_data_types: [DataType];
+  supported_tile_sizes: [Dim2d];
+  dst_physical_size_tiles: uint32;
+  num_cbs: uint32;
+  num_compute_threads: uint32;
+  num_datamovement_threads: uint32;
+  dram_grid_size: Dim2d;
+  dram_bank_to_logical_worker_noc0: [Dim2d];
+  dram_bank_to_logical_worker_noc1: [Dim2d];
+}
+
+struct ChipCoord {
+  rack: uint32;
+  shelf: uint32;
+  y: uint32;
+  x: uint32;
+}
+
+struct ChipChannel {
+  device_id0: uint32;
+  ethernet_core_coord0: Dim2d;
+  device_id1: uint32;
+  ethernet_core_coord1: Dim2d;
+}
+
+enum CPURole: uint8 {
+  Host,
+  Device,
+}
+
+table CPUDesc {
+  role: CPURole;
+  target_triple: string;
+}
+
+table SystemDesc {
+  cpu_descs: [CPUDesc];
+  chip_descs: [ChipDesc];
+  chip_desc_indices: [uint32];
+  chip_capabilities: [ChipCapability];
+  chip_coords: [ChipCoord];
+  chip_channels: [ChipChannel];
+}
+
+table DeviceRef {
+  global_id: uint32;
+}
+
+table EventRef {
+  global_id: uint32;
+}
+
+// Explicit non-sequential enumeration copied over from tt-metal definition of
+// `enum class MathFidelity`.
+enum MathFidelity : uint8 {
+  LoFi = 0,
+  HiFi2 = 2,
+  HiFi3 = 3,
+  HiFi4 = 4,
+}
+
+enum UnpackToDestMode : uint8 {
+  Fp32,
+  Default,
+}
+
+table DynamicLib {
+  dylib_id: uint32;
+  raw_file: [uint8];
+}
+
+table MLIR {
+  name: string;
+  source: string;
+}
+
+enum MeshShardDirection: uint32 {
+  FullToShardShape,
+  ShardToFullShape,
+}
+
+enum MeshShardType: uint32 {
+  Replicate,
+  Maximal,
+  Devices,
+}
+
+enum Topology: ushort {
+  Ring,
+  Linear,
+  Mesh,
+  Torus,
+}
+
+enum MoEActivationFunction: ushort {
+  Silu,
+  SwiGLU,
+}
+
+enum NocIndex : ushort {
+  Noc0,
+  Noc1,
+}
+
+// Wormhole/Blackhole: RISCV_0=BRISC, RISCV_1=NCRISC.
+// Quasar: RISCV_0..RISCV_7 = DM0..DM7.
+enum DataMovementProcessor : ushort {
+  RISCV_0,
+  RISCV_1,
+  RISCV_2,
+  RISCV_3,
+  RISCV_4,
+  RISCV_5,
+  RISCV_6,
+  RISCV_7,
+}
+
+enum RoutingMode : ushort {
+  BidirLineMesh,
+  UnidirRingTorus,
+}
+
+table FabricConnectionConfig {
+  noc_index: NocIndex;
+  topology: Topology;
+  cluster_axis: uint32;
+  routing_mode: RoutingMode;
+  num_links: uint32;
+}

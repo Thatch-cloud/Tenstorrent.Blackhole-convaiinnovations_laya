@@ -1,0 +1,115 @@
+"""CPU-only experiment for finite, single-row compiler shapes; no serving promotion."""
+from __future__ import annotations
+
+import argparse
+import json
+import os
+from pathlib import Path
+import sys
+
+from compiler_spike import INPUTS, checked_file, compare_arrays, load_call, read_reference
+from probe_bf16_cpu import BASELINE_SHA, decoded_metrics
+
+from shape_profiles import BUCKETS, MARKERS, profile_rows
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--output", required=True)
+    args = parser.parse_args(argv)
+    root = Path(__file__).resolve().parents[1]
+    output = (root / args.output).resolve()
+    if not output.is_relative_to(root):
+        raise ValueError("Output must remain under repository")
+    output.mkdir(parents=True, exist_ok=False)
+    sys.path.insert(0, str(root / "src"))
+    from laya_tt.reference import validate_manifest, checkpoint_files, sha256_file, validate_answers
+    from laya_tt.integrity import verify_loaded_state
+
+    report = {"schema_version": 1, "status": "FAILED", "physical_acceptance": False,
+              "compiler_attempted": False, "serving_promotion_approved": False,
+              "precision": "CPU FP32", "sequence_buckets": BUCKETS, "marker_width": MARKERS,
+              "atol": 1e-4, "rtol": 1e-4, "baseline_sha256": BASELINE_SHA, "cases": []}
+    try:
+        reference_path = root / "tests/fixtures/cpu-reference/reference.json"
+        reference, manifest = read_reference(reference_path, BASELINE_SHA, root / "configs/checkpoint-lock.json", root / "configs/reference-cases.json")
+        source, checkpoint = validate_manifest(manifest, root)
+        sys.path.insert(0, str(source))
+        import torch
+        import laya.agent as upstream
+
+        if Path(upstream.__file__).resolve() != source / "laya/agent.py":
+            raise ValueError("Upstream import differs from pin")
+        os.environ.pop("LAYA_CPU_AMP", None)
+        torch.manual_seed(0)
+        torch.set_num_threads(1)
+        torch.use_deterministic_algorithms(True)
+        agent = upstream.Agent(str(checkpoint), device="cpu", compile=False, fast=False)
+        if agent.device.type != "cpu" or agent.amp_enabled or checkpoint_files(checkpoint) != manifest["checkpoint"]["files"]:
+            raise ValueError("Unexpected acceleration or changed checkpoint")
+        model = agent.model.float().eval()
+        digest = manifest["checkpoint"]["files"]["model.safetensors"]
+        report.update(script_sha256=sha256_file(__file__), torch_version=torch.__version__,
+                      profile_helper_sha256=sha256_file(root / "scripts/shape_profiles.py"),
+                      manifest_sha256=sha256_file(root / "configs/checkpoint-lock.json"),
+                      loaded_state_integrity=verify_loaded_state(model, checkpoint, expected_sha256=digest))
+        original_forward = model.forward
+        agent._infer = lambda batch: model(*(batch[name] for name in INPUTS))
+        for case in reference["cases"]:
+            row = {"id": case["id"], "forwards": []}
+
+            def forward(*inputs, **kwargs):
+                index = len(row["forwards"])
+                if kwargs or len(inputs) != len(INPUTS) or index >= len(case["forward_calls"]):
+                    raise ValueError("Unexpected forward invocation")
+                baseline = load_call(reference_path.parent, case["id"], case["forward_calls"][index])
+                if any(value.dtype != baseline[name].dtype or not torch.equal(value, baseline[name]) for name, value in zip(INPUTS, inputs)):
+                    raise ValueError("Input differs from pinned reference")
+                # Padding is computational overhead, never additional encoded-token usage.
+                profiles = list(profile_rows(inputs, agent.tok.pad_token_id))
+                results = [original_forward(*profile) for profile in profiles]
+                logits = torch.cat([result[0][:, :inputs[2].shape[1]] for result in results])
+                actions = torch.cat([result[1] for result in results])
+                comparisons = {name: compare_arrays(actual.detach().numpy(), baseline[name].numpy(), 1e-4, 1e-4)
+                               for name, actual in (("logits", logits), ("act_logits", actions))}
+                row["forwards"].append({"outputs": comparisons, "profile_shapes": [list(p[0].shape) for p in profiles],
+                                        "encoded_tokens": int(inputs[1].sum()),
+                                        "padded_tokens": sum(p[0].numel() for p in profiles)})
+                return logits, actions
+
+            model.forward = forward
+            definition = case["input"]
+            with torch.no_grad():
+                actual = agent.predict_batch(definition["states"], definition["questions"]) if "states" in definition else [agent.predict(definition["state"], definition["questions"])]
+            if len(row["forwards"]) != len(case["forward_calls"]):
+                raise ValueError("Forward count differs from reference")
+            for answers in actual:
+                validate_answers(answers, definition["questions"])
+            expected = json.loads(checked_file(reference_path.parent, case["answers"]["file"], case["answers"]["sha256"]).read_text())
+            row["decoded"] = decoded_metrics(actual, expected)
+            report["cases"].append(row)
+        # Exercise every graph shape with the same pinned content, isolating padding
+        # effects from semantic differences between questions. This is not a claim
+        # of full-length context or maximum-option quality coverage.
+        single = next(case for case in reference["cases"] if case["id"] == "single-option")
+        baseline = load_call(reference_path.parent, single["id"], single["forward_calls"][0])
+        report["padding_sweep"] = []
+        with torch.no_grad():
+            for bucket in BUCKETS:
+                profile, = profile_rows(tuple(baseline[name] for name in INPUTS), agent.tok.pad_token_id, sequence_bucket=bucket)
+                logits, actions = original_forward(*profile)
+                report["padding_sweep"].append({"sequence_bucket": bucket, "case": single["id"],
+                    "encoded_tokens": int(profile[1].sum()), "outputs": {
+                        "logits": compare_arrays(logits[:, :baseline["logits"].shape[1]].numpy(), baseline["logits"].numpy(), 1e-4, 1e-4),
+                        "act_logits": compare_arrays(actions.numpy(), baseline["act_logits"].numpy(), 1e-4, 1e-4)}})
+        report["final_loaded_state_integrity"] = verify_loaded_state(model, checkpoint, expected_sha256=digest)
+        report["status"] = "OBSERVED"
+    except Exception as exc:
+        report.update(error_type=type(exc).__name__, reason=str(exc))
+    (output / "report.json").write_text(json.dumps(report, indent=2, allow_nan=False) + "\n")
+    print(json.dumps({"status": report["status"], "physical_acceptance": False}))
+    return 0 if report["status"] == "OBSERVED" else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
