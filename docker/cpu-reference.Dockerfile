@@ -5,9 +5,13 @@ LABEL org.opencontainers.image.title="Laya CPU reference service" \
       org.opencontainers.image.revision=$SOURCE_REVISION
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 OMP_NUM_THREADS=1 \
     HF_HUB_DISABLE_TELEMETRY=1 HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
-    HF_HOME=/tmp/huggingface GIT_OPTIONAL_LOCKS=0
-RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+    HF_HOME=/tmp/huggingface TORCHINDUCTOR_CACHE_DIR=/tmp/laya-torch-cache \
+    XDG_CACHE_HOME=/tmp/laya-cache GIT_OPTIONAL_LOCKS=0
+RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates passwd \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd --gid 10001 laya \
+    && useradd --uid 10001 --gid 10001 --home-dir /var/lib/laya \
+       --no-create-home --shell /usr/sbin/nologin laya
 WORKDIR /opt/laya
 COPY pyproject.toml ./
 COPY src ./src
