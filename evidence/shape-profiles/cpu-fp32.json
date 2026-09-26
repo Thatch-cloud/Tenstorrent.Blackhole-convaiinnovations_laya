@@ -1,0 +1,1640 @@
+{
+  "schema_version": 1,
+  "status": "OBSERVED",
+  "physical_acceptance": false,
+  "compiler_attempted": false,
+  "serving_promotion_approved": false,
+  "precision": "CPU FP32",
+  "sequence_buckets": [
+    32,
+    64,
+    128,
+    256,
+    512
+  ],
+  "marker_width": 64,
+  "atol": 0.0001,
+  "rtol": 0.0001,
+  "baseline_sha256": "d1cb5aaaebdc21b5b8c6db1287811fb098659370978e9d1f50e593b329acb085",
+  "cases": [
+    {
+      "id": "mixed-question-widths",
+      "forwards": [
+        {
+          "outputs": {
+            "logits": {
+              "passed": true,
+              "max_abs_error": 5.4836273193359375e-06,
+              "max_relative_error": 1.8610421334274966e-06,
+              "rmse": 2.1647238489788625e-06,
+              "pcc": 1.0,
+              "atol": 0.0001,
+              "rtol": 0.0001,
+              "elements": 12
+            },
+            "act_logits": {
+              "passed": true,
+              "max_abs_error": 0.0009765625,
+              "max_relative_error": 2.871342878251329e-07,
+              "rmse": 0.0006905339660024879,
+              "pcc": 0.9999999999999846,
+              "atol": 0.0001,
+              "rtol": 0.0001,
+              "elements": 8
+            }
+          },
+          "profile_shapes": [
+            [
+              1,
+              64
+            ],
+            [
+              1,
+              64
+            ],
+            [
+              1,
+              64
+            ],
+            [
+              1,
+              64
+            ]
+          ],
+          "encoded_tokens": 157,
+          "padded_tokens": 256
+        }
+      ],
+      "decoded": {
+        "numeric_fields": [
+          {
+            "path": "answers[0].answers.department.probabilities.billing",
+            "actual": 0.9501,
+            "expected": 0.9501,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.department.probabilities.technical",
+            "actual": 0.0268,
+            "expected": 0.0268,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.department.probabilities.other",
+            "actual": 0.0231,
+            "expected": 0.0231,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.department.confidence",
+            "actual": 0.7881,
+            "expected": 0.7881,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.department.answer_confidence",
+            "actual": 0.9501,
+            "expected": 0.9501,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.department.action.act_probability",
+            "actual": 1.0,
+            "expected": 1.0,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.urgency.score",
+            "actual": 1.0685,
+            "expected": 1.0685,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.urgency.probabilities.0",
+            "actual": 0.2671,
+            "expected": 0.2671,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.urgency.probabilities.1",
+            "actual": 0.3974,
+            "expected": 0.3974,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.urgency.probabilities.2",
+            "actual": 0.3355,
+            "expected": 0.3355,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.urgency.confidence",
+            "actual": 0.0117,
+            "expected": 0.0117,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.urgency.answer_confidence",
+            "actual": 0.3974,
+            "expected": 0.3974,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.urgency.action.act_probability",
+            "actual": 1.0,
+            "expected": 1.0,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.refund.noul",
+            "actual": 0.8944,
+            "expected": 0.8944,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.refund.confidence",
+            "actual": 0.8944,
+            "expected": 0.8944,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.refund.answer_confidence",
+            "actual": 0.8944,
+            "expected": 0.8944,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.refund.action.act_probability",
+            "actual": 1.0,
+            "expected": 1.0,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.only.probabilities.available",
+            "actual": 1.0,
+            "expected": 1.0,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.only.confidence",
+            "actual": 1.0,
+            "expected": 1.0,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.only.answer_confidence",
+            "actual": 1.0,
+            "expected": 1.0,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.only.action.act_probability",
+            "actual": 1.0,
+            "expected": 1.0,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].usage.input_tokens",
+            "actual": 157,
+            "expected": 157,
+            "absolute_error": 0
+          },
+          {
+            "path": "answers[0].usage.output_tokens",
+            "actual": 0,
+            "expected": 0,
+            "absolute_error": 0
+          }
+        ],
+        "nonnumeric_fields": [
+          {
+            "path": "answers.length",
+            "equal": true
+          },
+          {
+            "path": "answers[0].key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].model",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.department.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.department.type",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.department.choice",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.department.probabilities.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.department.action.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.urgency.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.urgency.type",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.urgency.legend.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.urgency.legend.0",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.urgency.legend.1",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.urgency.legend.2",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.urgency.probabilities.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.urgency.action.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.refund.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.refund.type",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.refund.action.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.only.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.only.type",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.only.choice",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.only.probabilities.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.only.action.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].usage.key_order",
+            "equal": true
+          }
+        ],
+        "max_numeric_absolute_error": 0.0,
+        "nonnumeric_and_order_exact": true,
+        "decoded_answers_exact": true
+      }
+    },
+    {
+      "id": "mixed-state-lengths",
+      "forwards": [
+        {
+          "outputs": {
+            "logits": {
+              "passed": true,
+              "max_abs_error": 5.409121513366699e-06,
+              "max_relative_error": 0.00015669984625545785,
+              "rmse": 1.6528678277429855e-06,
+              "pcc": 0.9999999999999998,
+              "atol": 0.0001,
+              "rtol": 0.0001,
+              "elements": 24
+            },
+            "act_logits": {
+              "passed": true,
+              "max_abs_error": 0.001953125,
+              "max_relative_error": 6.421876507635852e-07,
+              "rmse": 0.000762328857226367,
+              "pcc": 0.9999999999999808,
+              "atol": 0.0001,
+              "rtol": 0.0001,
+              "elements": 16
+            }
+          },
+          "profile_shapes": [
+            [
+              1,
+              64
+            ],
+            [
+              1,
+              64
+            ],
+            [
+              1,
+              64
+            ],
+            [
+              1,
+              64
+            ],
+            [
+              1,
+              64
+            ],
+            [
+              1,
+              64
+            ],
+            [
+              1,
+              64
+            ],
+            [
+              1,
+              64
+            ]
+          ],
+          "encoded_tokens": 326,
+          "padded_tokens": 512
+        }
+      ],
+      "decoded": {
+        "numeric_fields": [
+          {
+            "path": "answers[0].answers.department.probabilities.billing",
+            "actual": 0.2042,
+            "expected": 0.2042,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.department.probabilities.technical",
+            "actual": 0.3568,
+            "expected": 0.3568,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.department.probabilities.other",
+            "actual": 0.4391,
+            "expected": 0.4391,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.department.confidence",
+            "actual": 0.0411,
+            "expected": 0.0411,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.department.answer_confidence",
+            "actual": 0.4391,
+            "expected": 0.4391,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.department.action.act_probability",
+            "actual": 1.0,
+            "expected": 1.0,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.urgency.score",
+            "actual": 0.7966,
+            "expected": 0.7966,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.urgency.probabilities.0",
+            "actual": 0.4271,
+            "expected": 0.4271,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.urgency.probabilities.1",
+            "actual": 0.3492,
+            "expected": 0.3492,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.urgency.probabilities.2",
+            "actual": 0.2237,
+            "expected": 0.2237,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.urgency.confidence",
+            "actual": 0.0299,
+            "expected": 0.0299,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.urgency.answer_confidence",
+            "actual": 0.4271,
+            "expected": 0.4271,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.urgency.action.act_probability",
+            "actual": 1.0,
+            "expected": 1.0,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.refund.noul",
+            "actual": 0.0061,
+            "expected": 0.0061,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.refund.confidence",
+            "actual": 0.9939,
+            "expected": 0.9939,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.refund.answer_confidence",
+            "actual": 0.9939,
+            "expected": 0.9939,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.refund.action.act_probability",
+            "actual": 1.0,
+            "expected": 1.0,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.only.probabilities.available",
+            "actual": 1.0,
+            "expected": 1.0,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.only.confidence",
+            "actual": 1.0,
+            "expected": 1.0,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.only.answer_confidence",
+            "actual": 1.0,
+            "expected": 1.0,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.only.action.act_probability",
+            "actual": 1.0,
+            "expected": 1.0,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].usage.input_tokens",
+            "actual": 117,
+            "expected": 117,
+            "absolute_error": 0
+          },
+          {
+            "path": "answers[0].usage.output_tokens",
+            "actual": 0,
+            "expected": 0,
+            "absolute_error": 0
+          },
+          {
+            "path": "answers[1].answers.department.probabilities.billing",
+            "actual": 0.1471,
+            "expected": 0.1471,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[1].answers.department.probabilities.technical",
+            "actual": 0.8072,
+            "expected": 0.8072,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[1].answers.department.probabilities.other",
+            "actual": 0.0457,
+            "expected": 0.0457,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[1].answers.department.confidence",
+            "actual": 0.4576,
+            "expected": 0.4576,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[1].answers.department.answer_confidence",
+            "actual": 0.8072,
+            "expected": 0.8072,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[1].answers.department.action.act_probability",
+            "actual": 1.0,
+            "expected": 1.0,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[1].answers.urgency.score",
+            "actual": 1.7319,
+            "expected": 1.7319,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[1].answers.urgency.probabilities.0",
+            "actual": 0.0782,
+            "expected": 0.0782,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[1].answers.urgency.probabilities.1",
+            "actual": 0.1116,
+            "expected": 0.1116,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[1].answers.urgency.probabilities.2",
+            "actual": 0.8101,
+            "expected": 0.8101,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[1].answers.urgency.confidence",
+            "actual": 0.4405,
+            "expected": 0.4405,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[1].answers.urgency.answer_confidence",
+            "actual": 0.8101,
+            "expected": 0.8101,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[1].answers.urgency.action.act_probability",
+            "actual": 1.0,
+            "expected": 1.0,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[1].answers.refund.noul",
+            "actual": 0.6071,
+            "expected": 0.6071,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[1].answers.refund.confidence",
+            "actual": 0.6071,
+            "expected": 0.6071,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[1].answers.refund.answer_confidence",
+            "actual": 0.6071,
+            "expected": 0.6071,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[1].answers.refund.action.act_probability",
+            "actual": 1.0,
+            "expected": 1.0,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[1].answers.only.probabilities.available",
+            "actual": 1.0,
+            "expected": 1.0,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[1].answers.only.confidence",
+            "actual": 1.0,
+            "expected": 1.0,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[1].answers.only.answer_confidence",
+            "actual": 1.0,
+            "expected": 1.0,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[1].answers.only.action.act_probability",
+            "actual": 1.0,
+            "expected": 1.0,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[1].usage.input_tokens",
+            "actual": 209,
+            "expected": 209,
+            "absolute_error": 0
+          },
+          {
+            "path": "answers[1].usage.output_tokens",
+            "actual": 0,
+            "expected": 0,
+            "absolute_error": 0
+          }
+        ],
+        "nonnumeric_fields": [
+          {
+            "path": "answers.length",
+            "equal": true
+          },
+          {
+            "path": "answers[0].key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].model",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.department.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.department.type",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.department.choice",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.department.probabilities.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.department.action.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.urgency.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.urgency.type",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.urgency.legend.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.urgency.legend.0",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.urgency.legend.1",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.urgency.legend.2",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.urgency.probabilities.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.urgency.action.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.refund.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.refund.type",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.refund.action.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.only.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.only.type",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.only.choice",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.only.probabilities.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.only.action.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].usage.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[1].key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[1].model",
+            "equal": true
+          },
+          {
+            "path": "answers[1].answers.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[1].answers.department.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[1].answers.department.type",
+            "equal": true
+          },
+          {
+            "path": "answers[1].answers.department.choice",
+            "equal": true
+          },
+          {
+            "path": "answers[1].answers.department.probabilities.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[1].answers.department.action.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[1].answers.urgency.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[1].answers.urgency.type",
+            "equal": true
+          },
+          {
+            "path": "answers[1].answers.urgency.legend.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[1].answers.urgency.legend.0",
+            "equal": true
+          },
+          {
+            "path": "answers[1].answers.urgency.legend.1",
+            "equal": true
+          },
+          {
+            "path": "answers[1].answers.urgency.legend.2",
+            "equal": true
+          },
+          {
+            "path": "answers[1].answers.urgency.probabilities.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[1].answers.urgency.action.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[1].answers.refund.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[1].answers.refund.type",
+            "equal": true
+          },
+          {
+            "path": "answers[1].answers.refund.action.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[1].answers.only.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[1].answers.only.type",
+            "equal": true
+          },
+          {
+            "path": "answers[1].answers.only.choice",
+            "equal": true
+          },
+          {
+            "path": "answers[1].answers.only.probabilities.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[1].answers.only.action.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[1].usage.key_order",
+            "equal": true
+          }
+        ],
+        "max_numeric_absolute_error": 0.0,
+        "nonnumeric_and_order_exact": true,
+        "decoded_answers_exact": true
+      }
+    },
+    {
+      "id": "single-option",
+      "forwards": [
+        {
+          "outputs": {
+            "logits": {
+              "passed": true,
+              "max_abs_error": 1.0728836059570312e-06,
+              "max_relative_error": 9.021658295068972e-07,
+              "rmse": 1.0728836059570312e-06,
+              "pcc": null,
+              "atol": 0.0001,
+              "rtol": 0.0001,
+              "elements": 1
+            },
+            "act_logits": {
+              "passed": true,
+              "max_abs_error": 0.00048828125,
+              "max_relative_error": 1.05520349863272e-07,
+              "rmse": 0.00034526698300124393,
+              "pcc": 1.0,
+              "atol": 0.0001,
+              "rtol": 0.0001,
+              "elements": 2
+            }
+          },
+          "profile_shapes": [
+            [
+              1,
+              32
+            ]
+          ],
+          "encoded_tokens": 24,
+          "padded_tokens": 32
+        }
+      ],
+      "decoded": {
+        "numeric_fields": [
+          {
+            "path": "answers[0].answers.only.probabilities.available",
+            "actual": 1.0,
+            "expected": 1.0,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.only.confidence",
+            "actual": 1.0,
+            "expected": 1.0,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.only.answer_confidence",
+            "actual": 1.0,
+            "expected": 1.0,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.only.action.act_probability",
+            "actual": 1.0,
+            "expected": 1.0,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].usage.input_tokens",
+            "actual": 24,
+            "expected": 24,
+            "absolute_error": 0
+          },
+          {
+            "path": "answers[0].usage.output_tokens",
+            "actual": 0,
+            "expected": 0,
+            "absolute_error": 0
+          }
+        ],
+        "nonnumeric_fields": [
+          {
+            "path": "answers.length",
+            "equal": true
+          },
+          {
+            "path": "answers[0].key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].model",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.only.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.only.type",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.only.choice",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.only.probabilities.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.only.action.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].usage.key_order",
+            "equal": true
+          }
+        ],
+        "max_numeric_absolute_error": 0.0,
+        "nonnumeric_and_order_exact": true,
+        "decoded_answers_exact": true
+      }
+    },
+    {
+      "id": "conversation-truncation",
+      "forwards": [
+        {
+          "outputs": {
+            "logits": {
+              "passed": true,
+              "max_abs_error": 0.0,
+              "max_relative_error": 0.0,
+              "rmse": 0.0,
+              "pcc": 1.0,
+              "atol": 0.0001,
+              "rtol": 0.0001,
+              "elements": 2
+            },
+            "act_logits": {
+              "passed": true,
+              "max_abs_error": 0.0,
+              "max_relative_error": 0.0,
+              "rmse": 0.0,
+              "pcc": 0.9999999999999999,
+              "atol": 0.0001,
+              "rtol": 0.0001,
+              "elements": 2
+            }
+          },
+          "profile_shapes": [
+            [
+              1,
+              512
+            ]
+          ],
+          "encoded_tokens": 512,
+          "padded_tokens": 512
+        }
+      ],
+      "decoded": {
+        "numeric_fields": [
+          {
+            "path": "answers[0].answers.refund.noul",
+            "actual": 0.8709,
+            "expected": 0.8709,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.refund.confidence",
+            "actual": 0.8709,
+            "expected": 0.8709,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.refund.answer_confidence",
+            "actual": 0.8709,
+            "expected": 0.8709,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.refund.action.act_probability",
+            "actual": 1.0,
+            "expected": 1.0,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].usage.input_tokens",
+            "actual": 512,
+            "expected": 512,
+            "absolute_error": 0
+          },
+          {
+            "path": "answers[0].usage.output_tokens",
+            "actual": 0,
+            "expected": 0,
+            "absolute_error": 0
+          }
+        ],
+        "nonnumeric_fields": [
+          {
+            "path": "answers.length",
+            "equal": true
+          },
+          {
+            "path": "answers[0].key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].model",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.refund.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.refund.type",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.refund.action.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].usage.key_order",
+            "equal": true
+          }
+        ],
+        "max_numeric_absolute_error": 0.0,
+        "nonnumeric_and_order_exact": true,
+        "decoded_answers_exact": true
+      }
+    },
+    {
+      "id": "empty-questions",
+      "forwards": [],
+      "decoded": {
+        "numeric_fields": [
+          {
+            "path": "answers[0].usage.input_tokens",
+            "actual": 0,
+            "expected": 0,
+            "absolute_error": 0
+          },
+          {
+            "path": "answers[0].usage.output_tokens",
+            "actual": 0,
+            "expected": 0,
+            "absolute_error": 0
+          }
+        ],
+        "nonnumeric_fields": [
+          {
+            "path": "answers.length",
+            "equal": true
+          },
+          {
+            "path": "answers[0].key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].model",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].usage.key_order",
+            "equal": true
+          }
+        ],
+        "max_numeric_absolute_error": 0,
+        "nonnumeric_and_order_exact": true,
+        "decoded_answers_exact": true
+      }
+    },
+    {
+      "id": "option-temperature-buckets",
+      "forwards": [
+        {
+          "outputs": {
+            "logits": {
+              "passed": true,
+              "max_abs_error": 4.291534423828125e-06,
+              "max_relative_error": 7.042329236955564e-05,
+              "rmse": 1.3357278062236246e-06,
+              "pcc": 1.0,
+              "atol": 0.0001,
+              "rtol": 0.0001,
+              "elements": 33
+            },
+            "act_logits": {
+              "passed": true,
+              "max_abs_error": 0.00048828125,
+              "max_relative_error": 1.3196290733815377e-07,
+              "rmse": 0.00028190931112774694,
+              "pcc": 0.9999999999999974,
+              "atol": 0.0001,
+              "rtol": 0.0001,
+              "elements": 6
+            }
+          },
+          "profile_shapes": [
+            [
+              1,
+              128
+            ],
+            [
+              1,
+              128
+            ],
+            [
+              1,
+              128
+            ]
+          ],
+          "encoded_tokens": 168,
+          "padded_tokens": 384
+        }
+      ],
+      "decoded": {
+        "numeric_fields": [
+          {
+            "path": "answers[0].answers.options2.probabilities.label0",
+            "actual": 0.8044,
+            "expected": 0.8044,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.options2.probabilities.label1",
+            "actual": 0.1956,
+            "expected": 0.1956,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.options2.confidence",
+            "actual": 0.2869,
+            "expected": 0.2869,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.options2.answer_confidence",
+            "actual": 0.8044,
+            "expected": 0.8044,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.options2.action.act_probability",
+            "actual": 1.0,
+            "expected": 1.0,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.options6.probabilities.label0",
+            "actual": 0.9655,
+            "expected": 0.9655,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.options6.probabilities.label1",
+            "actual": 0.0262,
+            "expected": 0.0262,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.options6.probabilities.label2",
+            "actual": 0.006,
+            "expected": 0.006,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.options6.probabilities.label3",
+            "actual": 0.0012,
+            "expected": 0.0012,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.options6.probabilities.label4",
+            "actual": 0.0006,
+            "expected": 0.0006,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.options6.probabilities.label5",
+            "actual": 0.0005,
+            "expected": 0.0005,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.options6.confidence",
+            "actual": 0.9015,
+            "expected": 0.9015,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.options6.answer_confidence",
+            "actual": 0.9655,
+            "expected": 0.9655,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.options6.action.act_probability",
+            "actual": 1.0,
+            "expected": 1.0,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.options11.probabilities.label0",
+            "actual": 0.9996,
+            "expected": 0.9996,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.options11.probabilities.label1",
+            "actual": 0.0003,
+            "expected": 0.0003,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.options11.probabilities.label2",
+            "actual": 0.0,
+            "expected": 0.0,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.options11.probabilities.label3",
+            "actual": 0.0,
+            "expected": 0.0,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.options11.probabilities.label4",
+            "actual": 0.0,
+            "expected": 0.0,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.options11.probabilities.label5",
+            "actual": 0.0,
+            "expected": 0.0,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.options11.probabilities.label6",
+            "actual": 0.0,
+            "expected": 0.0,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.options11.probabilities.label7",
+            "actual": 0.0,
+            "expected": 0.0,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.options11.probabilities.label8",
+            "actual": 0.0,
+            "expected": 0.0,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.options11.probabilities.label9",
+            "actual": 0.0,
+            "expected": 0.0,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.options11.probabilities.label10",
+            "actual": 0.0,
+            "expected": 0.0,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.options11.confidence",
+            "actual": 0.9984,
+            "expected": 0.9984,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.options11.answer_confidence",
+            "actual": 0.9996,
+            "expected": 0.9996,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].answers.options11.action.act_probability",
+            "actual": 1.0,
+            "expected": 1.0,
+            "absolute_error": 0.0
+          },
+          {
+            "path": "answers[0].usage.input_tokens",
+            "actual": 168,
+            "expected": 168,
+            "absolute_error": 0
+          },
+          {
+            "path": "answers[0].usage.output_tokens",
+            "actual": 0,
+            "expected": 0,
+            "absolute_error": 0
+          }
+        ],
+        "nonnumeric_fields": [
+          {
+            "path": "answers.length",
+            "equal": true
+          },
+          {
+            "path": "answers[0].key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].model",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.options2.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.options2.type",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.options2.choice",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.options2.probabilities.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.options2.action.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.options6.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.options6.type",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.options6.choice",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.options6.probabilities.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.options6.action.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.options11.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.options11.type",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.options11.choice",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.options11.probabilities.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].answers.options11.action.key_order",
+            "equal": true
+          },
+          {
+            "path": "answers[0].usage.key_order",
+            "equal": true
+          }
+        ],
+        "max_numeric_absolute_error": 0.0,
+        "nonnumeric_and_order_exact": true,
+        "decoded_answers_exact": true
+      }
+    }
+  ],
+  "script_sha256": "faa99002165ccaec343c9dd29d6b0bf332ca28b90f8cd4944c01e052f77cdac8",
+  "torch_version": "2.14.0+cpu",
+  "manifest_sha256": "cf9e83ed8b32e6282adde751d4ceb03eaca208b2e02668f23acdf84f29d9e14b",
+  "loaded_state_integrity": {
+    "verified": true,
+    "checkpoint_sha256": "891102d372688fc2a094dac56a384bc537b87c63f21f9f3dac0be2b7cbc8d86c",
+    "comparison": "exact_numpy_promotion",
+    "checked_tensors": 206,
+    "checked_elements": 421293830,
+    "mismatch_tensors": 0,
+    "mismatches": [],
+    "unchecked_nonpersistent_buffers": [
+      "encoder.rotary_emb.full_attention_inv_freq",
+      "encoder.rotary_emb.full_attention_original_inv_freq",
+      "encoder.rotary_emb.sliding_attention_inv_freq",
+      "encoder.rotary_emb.sliding_attention_original_inv_freq"
+    ]
+  },
+  "padding_sweep": [
+    {
+      "sequence_bucket": 32,
+      "case": "single-option",
+      "encoded_tokens": 24,
+      "outputs": {
+        "logits": {
+          "passed": true,
+          "max_abs_error": 1.0728836059570312e-06,
+          "max_relative_error": 9.021658295068972e-07,
+          "rmse": 1.0728836059570312e-06,
+          "pcc": null,
+          "atol": 0.0001,
+          "rtol": 0.0001,
+          "elements": 1
+        },
+        "act_logits": {
+          "passed": true,
+          "max_abs_error": 0.00048828125,
+          "max_relative_error": 1.05520349863272e-07,
+          "rmse": 0.00034526698300124393,
+          "pcc": 1.0,
+          "atol": 0.0001,
+          "rtol": 0.0001,
+          "elements": 2
+        }
+      }
+    },
+    {
+      "sequence_bucket": 64,
+      "case": "single-option",
+      "encoded_tokens": 24,
+      "outputs": {
+        "logits": {
+          "passed": true,
+          "max_abs_error": 1.0728836059570312e-06,
+          "max_relative_error": 9.021658295068972e-07,
+          "rmse": 1.0728836059570312e-06,
+          "pcc": null,
+          "atol": 0.0001,
+          "rtol": 0.0001,
+          "elements": 1
+        },
+        "act_logits": {
+          "passed": true,
+          "max_abs_error": 0.00048828125,
+          "max_relative_error": 1.05520349863272e-07,
+          "rmse": 0.00034526698300124393,
+          "pcc": 1.0,
+          "atol": 0.0001,
+          "rtol": 0.0001,
+          "elements": 2
+        }
+      }
+    },
+    {
+      "sequence_bucket": 128,
+      "case": "single-option",
+      "encoded_tokens": 24,
+      "outputs": {
+        "logits": {
+          "passed": true,
+          "max_abs_error": 1.0728836059570312e-06,
+          "max_relative_error": 9.021658295068972e-07,
+          "rmse": 1.0728836059570312e-06,
+          "pcc": null,
+          "atol": 0.0001,
+          "rtol": 0.0001,
+          "elements": 1
+        },
+        "act_logits": {
+          "passed": true,
+          "max_abs_error": 0.00048828125,
+          "max_relative_error": 1.05520349863272e-07,
+          "rmse": 0.00034526698300124393,
+          "pcc": 1.0,
+          "atol": 0.0001,
+          "rtol": 0.0001,
+          "elements": 2
+        }
+      }
+    },
+    {
+      "sequence_bucket": 256,
+      "case": "single-option",
+      "encoded_tokens": 24,
+      "outputs": {
+        "logits": {
+          "passed": true,
+          "max_abs_error": 1.0728836059570312e-06,
+          "max_relative_error": 9.021658295068972e-07,
+          "rmse": 1.0728836059570312e-06,
+          "pcc": null,
+          "atol": 0.0001,
+          "rtol": 0.0001,
+          "elements": 1
+        },
+        "act_logits": {
+          "passed": true,
+          "max_abs_error": 0.00048828125,
+          "max_relative_error": 1.05520349863272e-07,
+          "rmse": 0.00034526698300124393,
+          "pcc": 1.0,
+          "atol": 0.0001,
+          "rtol": 0.0001,
+          "elements": 2
+        }
+      }
+    },
+    {
+      "sequence_bucket": 512,
+      "case": "single-option",
+      "encoded_tokens": 24,
+      "outputs": {
+        "logits": {
+          "passed": true,
+          "max_abs_error": 1.0728836059570312e-06,
+          "max_relative_error": 9.021658295068972e-07,
+          "rmse": 1.0728836059570312e-06,
+          "pcc": null,
+          "atol": 0.0001,
+          "rtol": 0.0001,
+          "elements": 1
+        },
+        "act_logits": {
+          "passed": true,
+          "max_abs_error": 0.00048828125,
+          "max_relative_error": 1.05520349863272e-07,
+          "rmse": 0.00034526698300124393,
+          "pcc": 1.0,
+          "atol": 0.0001,
+          "rtol": 0.0001,
+          "elements": 2
+        }
+      }
+    }
+  ],
+  "final_loaded_state_integrity": {
+    "verified": true,
+    "checkpoint_sha256": "891102d372688fc2a094dac56a384bc537b87c63f21f9f3dac0be2b7cbc8d86c",
+    "comparison": "exact_numpy_promotion",
+    "checked_tensors": 206,
+    "checked_elements": 421293830,
+    "mismatch_tensors": 0,
+    "mismatches": [],
+    "unchecked_nonpersistent_buffers": [
+      "encoder.rotary_emb.full_attention_inv_freq",
+      "encoder.rotary_emb.full_attention_original_inv_freq",
+      "encoder.rotary_emb.sliding_attention_inv_freq",
+      "encoder.rotary_emb.sliding_attention_original_inv_freq"
+    ]
+  }
+}
