@@ -42,3 +42,46 @@ All discrete answers, structure and question order matched the accepted fixtures
 **The action probabilities are saturated in these examples. Their zero observed change does not validate action quality or compensate for the action-logit drift.** Only the single-option and empty-question decoded results were fully exact; the other four fixtures had numeric differences. The inherited checkpoint temperature-clamping warning also remains applicable.
 
 This run does not meet FP32 equivalence and does not promote BF16. No further model execution or compiler attempt was made. The full outputs, dtype events, state guards, numeric comparisons and process log are preserved in [the evidence index](../evidence/precision/bf16-cpu-v1/index.json); [summary.json](../evidence/precision/bf16-cpu-v1/summary.json) separates score, probability and confidence changes. Raw report SHA256: `ff6a38dc74d8d9b0503d85bb699708234a55846f9911d60a16653a40f4d40b67`.
+
+## Offline compilation follow-up
+
+The compiler harness now accepts `--precision mixed-bf16-fp32` only with
+`--mode tt-compile-only`. It reuses this experiment's conversion policy after
+verifying the original FP32 state, verifies the converted state against the
+checkpoint, and records the policy source hash and parameter/buffer inventory.
+The matrix verifier checks both state proofs and the expected parameter dtypes.
+Default runs remain FP32-source experiments.
+
+To attempt the five finite profiles on Linux without device nodes:
+
+```sh
+python scripts/run_offline_matrix.py --root "$PWD" --cases single-option \
+  --profile-buckets 32 64 128 256 512 --precision mixed-bf16-fp32 \
+  --timeout 1200 --output artifacts/offline-mixed-profiles
+```
+
+This option is also available in the independent offline compilation workflow.
+Compilation does not read dummy outputs or establish numerical parity, final
+lowered operator precision, physical memory fit or inference performance. The
+candidate remains experimental; the existing CPU differences and calibration
+limitations still apply.
+
+[Hosted run 36274273596](https://github.com/Thatch-cloud/Tenstorrent.Blackhole-convaiinnovations_laya/actions/runs/36274273596)
+passed at `af72455c0b5380514ff5106d2e63326f178e8119`. All five profiles compiled,
+with all 206 persistent tensors (421,293,830 elements) verified both before and
+after conversion in each process. The four nonpersistent rotary buffers remain
+outside checkpoint comparison; the conversion policy separately preserves their
+pre-conversion bytes, without proving their derivation.
+
+The [retained evidence](../evidence/precision/offline-mixed-36274273596/summary.json)
+includes the full matrix, reports, logs and 15 compiled artifacts in a hashed
+archive. Independent local checks verified report/log/artifact hashes, all 25
+input tensors reconstructed through the CPU profile adapter, and the compiler,
+matrix, profile and precision-policy source hashes.
+
+Compilation took approximately 36–45 seconds per profile; binary sizes were
+2.73–5.91 MB. These measure host compilation and serialized artifacts, not device
+latency or model residency. TTNN IR contains both BF16 and FP32 type text; textual
+counts are not proof of action-head operator precision. No dummy outputs were
+read and no physical execution or numerical comparison occurred. The mixed
+candidate remains unpromoted pending lowered-operator review and device parity.
