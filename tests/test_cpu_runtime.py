@@ -9,12 +9,16 @@ from dataclasses import asdict
 import hashlib
 import json
 import os
+import signal
 from pathlib import Path
 import socket
+import subprocess
+import sys
 import tempfile
 import threading
 import time
 import unittest
+import urllib.request
 
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
@@ -53,6 +57,56 @@ async def invoke(application, raw, grant):
 @unittest.skipUnless(os.environ.get("LAYA_CPU_INTEGRATION") == "1" and hasattr(socket, "SO_PEERCRED"),
                      "requires explicit CPU integration, pinned assets and Linux peer credentials")
 class CpuRuntimeIntegrationTests(unittest.TestCase):
+    def test_cpu_entrypoint_real_model_inventory_and_signal_shutdown(self):
+        root = Path(__file__).resolve().parents[1]
+        with tempfile.TemporaryDirectory(prefix="laya-entrypoint-") as temporary:
+            directory = Path(temporary).resolve()
+            runtime = RuntimeIdentity("55cf4c4ebb4ebe31b2550e8bdf3bd21b99753851",
+                                      "cpu-entrypoint-test", "entrypoint-generation", "cpu-reference")
+            key = Ed25519PrivateKey.generate()
+            assignment = dict(schema_version=1, runtime=asdict(runtime), issuer="test-authority",
+                host_id="test-host", policy_revision="test-policy",
+                public_keys={"test-key": key.public_key().public_bytes_raw().hex()},
+                journal_path=str(directory / "journal.sqlite"),
+                ledger_socket=str(directory / "ledger.sock"), ledger_uid=os.getuid())
+            path = directory / "assignment.json"
+            path.write_text(json.dumps(assignment), encoding="utf-8")
+            with socket.socket() as reservation:
+                reservation.bind(("127.0.0.1", 0))
+                port = reservation.getsockname()[1]
+            with (directory / "process.log").open("w+", encoding="utf-8") as log:
+                process = subprocess.Popen([sys.executable, "-m", "laya_tt.serve",
+                    "--assignment", str(path), "--root", str(root), "--port", str(port)],
+                    stdout=log, stderr=subprocess.STDOUT)
+                try:
+                    deadline = time.monotonic() + 120
+                    inventory = None
+                    while time.monotonic() < deadline:
+                        if process.poll() is not None:
+                            log.seek(0)
+                            self.fail("entrypoint stopped before readiness: " + log.read())
+                        try:
+                            with urllib.request.urlopen(f"http://127.0.0.1:{port}/v1/models", timeout=1) as response:
+                                inventory = json.load(response)
+                            break
+                        except (OSError, ValueError):
+                            time.sleep(.1)
+                    self.assertIsNotNone(inventory, "entrypoint did not become ready")
+                    self.assertIn("entrypoint-generation", json.dumps(inventory))
+                    self.assertIn('"state": "ready"', json.dumps(inventory))
+                finally:
+                    process.terminate()
+                    try:
+                        process.wait(timeout=40)
+                    except subprocess.TimeoutExpired:
+                        process.kill()
+                        process.wait()
+                        self.fail("entrypoint did not drain on SIGTERM")
+                # Uvicorn restores and re-raises SIGTERM after graceful shutdown.
+                self.assertEqual(process.returncode, -signal.SIGTERM)
+                log.seek(0)
+                self.assertIn("Application shutdown complete", log.read())
+
     def test_pinned_answers_signed_admission_real_peer_and_durable_outbox(self):
         self.exercise(False)
 
