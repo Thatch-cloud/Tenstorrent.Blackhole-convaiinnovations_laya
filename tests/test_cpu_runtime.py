@@ -81,6 +81,7 @@ class CpuRuntimeIntegrationTests(unittest.TestCase):
             with (directory / "process.log").open("w+", encoding="utf-8") as log:
                 process = subprocess.Popen([sys.executable, "-m", "laya_tt.serve",
                     "--assignment", str(path), "--root", str(root), "--port", str(port),
+                    "--assignment-sha256", hashlib.sha256(path.read_bytes()).hexdigest(),
                     "--listen-host", os.environ.get("LAYA_CPU_TEST_LISTEN_HOST", "127.0.0.1")],
                     stdout=log, stderr=subprocess.STDOUT)
                 try:

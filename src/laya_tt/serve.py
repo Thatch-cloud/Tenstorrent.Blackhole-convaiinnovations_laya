@@ -24,22 +24,25 @@ def _pairs(items):
     return result
 
 
-def _read_json(path, limit=65536):
+def _read_json(path, limit=65536, expected_sha256=None):
     with Path(path).open("rb") as stream:
         raw = stream.read(limit + 1)
     if len(raw) > limit:
         raise ValueError("assignment exceeds size limit")
+    if expected_sha256 is not None and (not re.fullmatch(r"[0-9a-f]{64}", expected_sha256)
+            or hashlib.sha256(raw).hexdigest() != expected_sha256):
+        raise ValueError("assignment differs from pinned digest")
     return json.loads(raw, object_pairs_hook=_pairs)
 
 
-def build_cpu_runtime(assignment_path, *, root):
+def build_cpu_runtime(assignment_path, *, root, assignment_sha256=None):
     """Load an operator-owned assignment and assets, then require golden startup.
 
     Assignment and root must be protected by the launcher. Public keys authenticate
     grants, not the assignment file itself. This function never downloads assets,
     allocates a device, reconciles an uncertain journal, or issues tenant grants.
     """
-    value = _read_json(assignment_path)
+    value = _read_json(assignment_path, expected_sha256=assignment_sha256)
     required = {"schema_version", "runtime", "issuer", "host_id", "policy_revision",
                 "public_keys", "journal_path", "ledger_socket", "ledger_uid"}
     if not isinstance(value, dict) or set(value) != required or type(value["schema_version"]) is not int or value["schema_version"] != 1:
@@ -93,6 +96,7 @@ def build_cpu_runtime(assignment_path, *, root):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--assignment", type=Path, required=True)
+    parser.add_argument("--assignment-sha256", help="expected exact assignment bytes, supplied by the trusted launcher")
     parser.add_argument("--root", type=Path, required=True, help="pinned source, checkpoint and reference root")
     parser.add_argument("--port", type=int, required=True)
     parser.add_argument("--listen-host", choices=("127.0.0.1", "0.0.0.0"), default="127.0.0.1",
@@ -101,7 +105,7 @@ def main(argv=None):
     if not 1 <= args.port <= 65535:
         parser.error("port must be between 1 and 65535")
     import uvicorn
-    app = build_cpu_runtime(args.assignment, root=args.root)
+    app = build_cpu_runtime(args.assignment, root=args.root, assignment_sha256=args.assignment_sha256)
     uvicorn.run(app, host=args.listen_host, port=args.port, workers=1, reload=False,
                 lifespan="on", interface="asgi3", loop="asyncio", http="h11",
                 ws="none", proxy_headers=False, access_log=False,

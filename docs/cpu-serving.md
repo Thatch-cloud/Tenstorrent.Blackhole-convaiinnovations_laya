@@ -39,6 +39,10 @@ The host launcher supplies a protected JSON assignment with exactly these fields
 The example is deliberately invalid until the real public verification key and
 assignment values are supplied. No signing key is loaded. Protect the assignment
 and assets from workloads; their paths are operator input, not a customer API.
+Orchestrated launches must also pass `--assignment-sha256` with the trusted hash
+of the exact file bytes. The launcher verifies the hash on the same bounded read
+it parses, before loading the model. This detects replacement between assignment
+selection and mounting; an immutable ConfigMap name alone is insufficient.
 The launcher must provision the journal directory and real ledger peer identity.
 Retain journals across failure and reconcile uncertain consumption before restart.
 

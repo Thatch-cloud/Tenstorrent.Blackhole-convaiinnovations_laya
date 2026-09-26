@@ -1,5 +1,6 @@
 from dataclasses import asdict
 import asyncio
+import hashlib
 import json
 from pathlib import Path
 import socket
@@ -12,6 +13,18 @@ from laya_tt.service import RuntimeIdentity, ServiceNotReady
 from laya_tt import serve
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_assignment_digest_checks_exact_bytes_before_parsing_or_model_load(tmp_path, monkeypatch):
+    path = tmp_path / "assignment.json"
+    raw = b'{"identity":"original"}'
+    path.write_bytes(raw)
+    digest = hashlib.sha256(raw).hexdigest()
+    assert serve._read_json(path, expected_sha256=digest) == {"identity": "original"}
+    path.write_bytes(raw + b"\n")
+    monkeypatch.setattr(serve, "load_cpu_backend", lambda *a, **k: pytest.fail("model loaded"))
+    with pytest.raises(ValueError, match="pinned digest"):
+        serve.build_cpu_runtime(path, root=ROOT, assignment_sha256=digest)
 
 
 @pytest.fixture
