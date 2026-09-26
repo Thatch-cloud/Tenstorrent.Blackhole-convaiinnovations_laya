@@ -91,3 +91,19 @@ acknowledging the original receipt bytes. The test then sends lifespan shutdown
 and verifies the actual worker reaches stopped state. It never calls the receipt
 pump manually in the hosted path. The direct composition test remains alongside
 it, and both still use a recording fixture ledger rather than platform admission.
+
+
+## Host runtime inventory
+
+`GET /v1/models` exposes a runtime inventory envelope for the host observation
+collector: `model`, `task: "decision"`, and `observed.decision_runtime`. The nested
+payload is the same current loaded-backend readback as
+`GET /internal/decision-runtime`; the collector owns its observation timestamp.
+This is a host inventory format, not the public gateway model-list format.
+
+The endpoint is read-only and does not admit work, start a model or assert tenant
+entitlement. Reachability means the runtime answered; starting, draining, failed
+and stopped states must still fail a readiness check. Missing or invalid backend
+facts return 503. As with the other runtime routes, the listener belongs behind
+the host's protected binding; the hosting wrapper also requires successful
+startup before it serves HTTP.

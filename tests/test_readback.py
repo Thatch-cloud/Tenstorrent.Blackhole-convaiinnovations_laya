@@ -76,6 +76,22 @@ def test_effective_bounds_intersect_backend_and_admission(make_service):
     assert observed["question_types"] == ["noul"]
 
 
+def test_runtime_inventory_preserves_readback_across_lifecycle(make_service):
+    service = make_service()
+    for state in ("starting", "ready", "stopped"):
+        if state == "ready":
+            service.start(lambda: True)
+        elif state == "stopped":
+            assert service.drain()
+        status, body, headers = asyncio.run(request(service, "/v1/models"))
+        assert status == 200
+        assert body == {"model": "laya-english", "task": "decision", "observed": {
+            "runtime_reachable": True, "decision_runtime": service.runtime_readback()}}
+        assert body["observed"]["decision_runtime"]["state"] == state
+        assert "observed_at_unix_ms" not in body["observed"]["decision_runtime"]
+        assert (b"cache-control", b"no-store") in headers
+
+
 def test_lifecycle_readback_does_not_start_or_change_health_contract(make_service):
     service = make_service()
     assert asyncio.run(request(service, "/readyz"))[0] == 503
@@ -148,10 +164,11 @@ def test_reconciled_journal_permits_explicit_model_test(make_service):
     assert service.runtime_readback()["state"] == "ready"
 
 
+@pytest.mark.parametrize("path", ["/internal/decision-runtime", "/v1/models"])
 @pytest.mark.parametrize("provider", [None, lambda: {}, lambda: facts(backend="tt-blackhole")])
-def test_missing_invalid_mismatched_backend_fails_closed(make_service, provider):
+def test_missing_invalid_mismatched_backend_fails_closed(make_service, provider, path):
     service = make_service(provider=provider)
-    status, body, _ = asyncio.run(request(service))
+    status, body, _ = asyncio.run(request(service, path))
     assert status == 503
     assert body == {"error": {"code": "runtime_readback_unavailable"}}
     assert service.readiness()["state"] == "starting"
@@ -169,8 +186,9 @@ def test_readback_provider_failure_is_sanitized_and_not_cached(make_service):
     assert asyncio.run(request(service))[1] == {"error": {"code": "runtime_readback_unavailable"}}
 
 
-def test_method_is_get_only(make_service):
-    status, _, headers = asyncio.run(request(make_service(), method="POST"))
+@pytest.mark.parametrize("path", ["/internal/decision-runtime", "/v1/models"])
+def test_method_is_get_only(make_service, path):
+    status, _, headers = asyncio.run(request(make_service(), path, method="POST"))
     assert status == 405
     assert (b"allow", b"GET") in headers
 

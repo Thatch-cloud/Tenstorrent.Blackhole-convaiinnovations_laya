@@ -144,13 +144,20 @@ class DecisionASGI:
         if scope["type"] != "http":
             raise ValueError("DecisionASGI supports HTTP scopes only")
         path, method = scope.get("path"), scope.get("method")
-        if path == "/internal/decision-runtime":
+        if path in ("/internal/decision-runtime", "/v1/models"):
             if method != "GET":
                 return await self._error(send, 405, "method_not_allowed", [(b"allow", b"GET")])
             try:
                 observed = self._service.runtime_readback()
             except ReadbackUnavailable:
                 return await self._error(send, 503, "runtime_readback_unavailable")
+            if path == "/v1/models":
+                # Runtime inventory for the host collector. It is not an
+                # admission grant: callers must inspect the nested state and
+                # compare the observed generation with trusted requirements.
+                observed = {"model": observed["model"], "task": "decision",
+                            "observed": {"runtime_reachable": True,
+                                         "decision_runtime": observed}}
             return await self._send(send, 200, observed)
         if path in ("/healthz", "/readyz"):
             if method != "GET":
