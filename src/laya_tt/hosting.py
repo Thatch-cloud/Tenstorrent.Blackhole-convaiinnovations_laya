@@ -33,11 +33,20 @@ class HostedRuntime:
     async def _blocking(self, callback, **kwargs):
         # Cancelling an await must not abandon ownership of a blocking operation.
         task = asyncio.create_task(asyncio.to_thread(callback, **kwargs))
-        try:
-            return await asyncio.shield(task)
-        except asyncio.CancelledError:
-            await task
-            raise
+        cancelled = False
+        while True:
+            try:
+                result = await asyncio.shield(task)
+                break
+            except asyncio.CancelledError:
+                if task.cancelled():
+                    raise
+                # Every wait must be shielded: shutdown may cancel us again while
+                # the worker thread still owns model state or journal operations.
+                cancelled = True
+        if cancelled:
+            raise asyncio.CancelledError
+        return result
 
     async def _drain(self):
         try:
