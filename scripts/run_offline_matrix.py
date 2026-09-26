@@ -36,7 +36,7 @@ def targets(reference, selected):
     return result
 
 
-def inspect_report(directory, case, call):
+def inspect_report(directory, case, call, profile_bucket=None):
     path = directory / "report.json"
     report = json.loads(path.read_text())
     evidence = {"report_sha256": sha(path), "status": report["status"], "artifacts": {}}
@@ -48,6 +48,12 @@ def inspect_report(directory, case, call):
     if report["status"] != "COMPILED":
         return evidence
     compiled = report["compilation"]
+    if compiled.get("profile_bucket") != profile_bucket:
+        raise ValueError("Compiled profile identity mismatch")
+    if profile_bucket is not None and compiled.get("input_shapes") != {
+            "input_ids": [1, profile_bucket], "attention_mask": [1, profile_bucket],
+            "marker_pos": [1, 64], "marker_mask": [1, 64], "qtype": [1]}:
+        raise ValueError("Compiled profile shapes mismatch")
     if (compiled["case"] != case or compiled["call"] != call
             or compiled.get("numerical_comparison_performed") is not False
             or report.get("loaded_state_integrity", {}).get("verified") is not True):
@@ -77,6 +83,7 @@ def main(argv=None):
     parser.add_argument("--output", required=True)
     parser.add_argument("--cases", nargs="+", default=["mixed-question-widths", "mixed-state-lengths", "conversation-truncation", "option-temperature-buckets"])
     parser.add_argument("--timeout", type=int, default=1200)
+    parser.add_argument("--profile-buckets", nargs="+", type=int, choices=(32, 64, 128, 256, 512))
     args = parser.parse_args(argv)
     if platform.system() != "Linux" or list(Path("/dev/tenstorrent").glob("*")):
         raise RuntimeError("Offline matrix requires Linux without TT device nodes")
@@ -92,6 +99,12 @@ def main(argv=None):
     if sha(ref) != REFERENCE_SHA:
         raise ValueError("Reference report hash mismatch")
     jobs = targets(json.loads(ref.read_text()), args.cases)
+    if args.profile_buckets:
+        if args.cases != ["single-option"] or len(set(args.profile_buckets)) != len(args.profile_buckets):
+            raise ValueError("Profile matrix requires single-option and unique buckets")
+        jobs = [(case, call, bucket) for case, call in jobs for bucket in args.profile_buckets]
+    else:
+        jobs = [(case, call, None) for case, call in jobs]
     output.mkdir(parents=True)
     aggregate = {"schema_version": 1, "kind": "offline_fp32_compiler_matrix",
                  "physical_acceptance": False, "numerical_comparison_performed": False,
@@ -104,8 +117,10 @@ def main(argv=None):
     env.update(OMP_NUM_THREADS="1", GIT_CONFIG_COUNT="2", GIT_CONFIG_KEY_0="safe.directory",
                GIT_CONFIG_VALUE_0=str(root / ".cache/upstream/laya"),
                GIT_CONFIG_KEY_1="core.autocrlf", GIT_CONFIG_VALUE_1="true")
-    for case, call in jobs:
+    for case, call, bucket in jobs:
         name = f"{case}-{call:03d}"
+        if bucket is not None:
+            name += f"-profile-{bucket}"
         destination = output / name
         log = output / f"{name}.log"
         command = [sys.executable, str(root / "scripts/compiler_spike.py"), "--mode", "tt-compile-only",
@@ -113,14 +128,16 @@ def main(argv=None):
                    "--system-desc", str(root / "configs/compiler/migrated-p150/p150-migrated-nightly.ttsys"),
                    "--system-desc-sha256", DESCRIPTOR_SHA, "--case-id", case, "--call-index", str(call),
                    "--output", str(destination)]
+        if bucket is not None:
+            command.extend(["--profile-bucket", str(bucket)])
         started = time.monotonic()
-        row = {"case": case, "call": call, "directory": name, "log": log.name}
+        row = {"case": case, "call": call, "profile_bucket": bucket, "directory": name, "log": log.name}
         with log.open("wb") as stream:
             process = subprocess.Popen(command, cwd=root, env=env, stdout=stream,
                                        stderr=subprocess.STDOUT, start_new_session=True)
             try:
                 row["exit_code"] = process.wait(timeout=args.timeout)
-                row.update(inspect_report(destination, case, call))
+                row.update(inspect_report(destination, case, call, bucket))
                 if row["exit_code"] != 0 and row["status"] == "COMPILED":
                     raise ValueError("Compiled report conflicts with failed process")
             except subprocess.TimeoutExpired:

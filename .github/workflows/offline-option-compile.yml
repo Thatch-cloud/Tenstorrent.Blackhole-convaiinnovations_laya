@@ -2,6 +2,11 @@ name: Independent offline option-bucket compilation
 
 on:
   workflow_dispatch:
+    inputs:
+      profile_sweep:
+        description: Compile five single-row profiles instead of original option batch
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -9,12 +14,13 @@ permissions:
 jobs:
   compile-option-buckets:
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    timeout-minutes: 110
     env:
       OMP_NUM_THREADS: '1'
       HF_HUB_DISABLE_TELEMETRY: '1'
       HF_HUB_DISABLE_PROGRESS_BARS: '1'
       PIP_DISABLE_PIP_VERSION_CHECK: '1'
+      PROFILE_SWEEP: ${{ inputs.profile_sweep }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
@@ -23,7 +29,7 @@ jobs:
       - name: Prepare evidence directory
         run: |
           mkdir -p artifacts/offline-ci
-          python -c 'import json,platform; from pathlib import Path; assert not list(Path("/dev/tenstorrent").glob("*")); Path("artifacts/offline-ci/intent.json").write_text(json.dumps({"mode":"offline-only","case":"option-temperature-buckets","attempt_limit":1,"physical_acceptance":False,"python":platform.python_version(),"machine":platform.machine()},indent=2)+"\n")'
+          python -c 'import json,platform,os; from pathlib import Path; assert not list(Path("/dev/tenstorrent").glob("*")); Path("artifacts/offline-ci/intent.json").write_text(json.dumps({"mode":"offline-only","case":"single-option" if os.environ["PROFILE_SWEEP"] == "true" else "option-temperature-buckets","profile_sweep":os.environ["PROFILE_SWEEP"] == "true","attempt_limit":1,"physical_acceptance":False,"python":platform.python_version(),"machine":platform.machine()},indent=2)+"\n")'
       - name: Install audited compiler and validate environment
         run: |
           set -o pipefail
@@ -43,7 +49,11 @@ jobs:
       - name: Compile option buckets once without hardware
         run: |
           set -o pipefail
-          python scripts/run_offline_matrix.py --root "$GITHUB_WORKSPACE" --cases option-temperature-buckets --timeout 1200 --output artifacts/offline-ci/option-buckets 2>&1 | tee artifacts/offline-ci/matrix.log
+          if [[ "$PROFILE_SWEEP" == "true" ]]; then
+            python scripts/run_offline_matrix.py --root "$GITHUB_WORKSPACE" --cases single-option --profile-buckets 32 64 128 256 512 --timeout 1200 --output artifacts/offline-ci/profile-sweep 2>&1 | tee artifacts/offline-ci/matrix.log
+          else
+            python scripts/run_offline_matrix.py --root "$GITHUB_WORKSPACE" --cases option-temperature-buckets --timeout 1200 --output artifacts/offline-ci/option-buckets 2>&1 | tee artifacts/offline-ci/matrix.log
+          fi
       - name: Retain reports, failures, and compiled artifacts
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

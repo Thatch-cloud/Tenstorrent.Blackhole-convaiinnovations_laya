@@ -56,3 +56,22 @@ Remaining gates are content-length and marker-limit quality coverage, offline
 compilation of these exact shapes, explicit precision acceptance, and physical
 parity under verified exclusive allocation. These CPU results establish neither
 BF16 quality nor accelerator capacity, latency, isolation or serving readiness.
+
+## Offline compiler sweep
+
+The existing `offline-option-compile.yml` workflow accepts `profile_sweep=true`.
+It runs the audited compiler with no TT device nodes and a fresh process/cache
+for each of the five shapes, using the pinned single-option fixture. Each graph
+has a 1,200-second limit; the job has a 110-minute total limit. The default
+dispatch still compiles the original option-temperature batch.
+
+`compiler_spike.py --profile-bucket` is restricted to `tt-compile-only` and the
+single-option call. It shares the CPU experiment's layout function. The matrix
+verifies the requested bucket, all five tensor shapes, compiler/descriptor
+identity and artifact hashes. Compilation does not read dummy outputs and
+cannot establish numerical parity. Source weights remain FP32; the compiler's
+lowering precision must be assessed separately. Compiler results are pending.
+
+The retained CPU report predates extraction of the unchanged layout function
+into `scripts/shape_profiles.py`; its script hash identifies the tested version
+at commit `e8add32d20e92a3ddf8b3e59e706b320452c4ec2`.

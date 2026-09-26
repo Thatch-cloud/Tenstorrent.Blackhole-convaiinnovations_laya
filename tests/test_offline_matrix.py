@@ -43,6 +43,22 @@ def test_artifact_hashes_verified(tmp_path):
         matrix.inspect_report(tmp_path, "case", 0)
 
 
+def test_profile_identity_and_all_input_shapes_must_match(tmp_path):
+    report = report_fixture(tmp_path)
+    compiled = report["compilation"]
+    compiled["profile_bucket"] = 256
+    compiled["input_shapes"] = {"input_ids": [1, 256], "attention_mask": [1, 256],
+                                "marker_pos": [1, 64], "marker_mask": [1, 64], "qtype": [1]}
+    (tmp_path / "report.json").write_text(json.dumps(report))
+    assert matrix.inspect_report(tmp_path, "case", 0, 256)["status"] == "COMPILED"
+    with pytest.raises(ValueError, match="profile identity"):
+        matrix.inspect_report(tmp_path, "case", 0)
+    compiled["input_shapes"]["marker_mask"] = [1, 1]
+    (tmp_path / "report.json").write_text(json.dumps(report))
+    with pytest.raises(ValueError, match="profile shapes"):
+        matrix.inspect_report(tmp_path, "case", 0, 256)
+
+
 @pytest.mark.parametrize("field,value", [("physical_acceptance", True), ("dtype", "bfloat16"),
                                         ("graph_executed", False), ("device_execution", True)])
 def test_execution_or_wrong_dtype_report_rejected(tmp_path, field, value):

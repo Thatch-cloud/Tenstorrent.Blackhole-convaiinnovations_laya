@@ -373,6 +373,16 @@ def run_compile_only(args, reference, manifest, source, checkpoint, output, prog
     model.compile(backend="tt", fullgraph=True)
     model = model.to(device)
     tensors = load_call(Path(args.reference).parent, case["id"], {name: call[name] for name in INPUTS})
+    profile_bucket = getattr(args, "profile_bucket", None)
+    if profile_bucket is not None:
+        from shape_profiles import profile_rows
+        if case["id"] != "single-option" or args.call_index != 0:
+            raise ValueError("Profile compilation requires the pinned single-option call")
+        # Obtain the padding identity from the hash-validated encoder config.
+        tokenizer_config = json.loads((checkpoint / "encoder/config.json").read_text())
+        pad_id = tokenizer_config["pad_token_id"]
+        profiled, = profile_rows(tuple(tensors[name] for name in INPUTS), pad_id, sequence_bucket=profile_bucket)
+        tensors = dict(zip(INPUTS, profiled))
     progress["compilation_attempted"] = True
     with torch.no_grad():
         # Keep lazy outputs alive for the barrier, but never copy/read/compare them.
@@ -383,6 +393,7 @@ def run_compile_only(args, reference, manifest, source, checkpoint, output, prog
     artifacts = compile_artifact_inventory(output, prefix)
     del dummy_outputs
     return {"case": case["id"], "call": args.call_index,
+            "profile_bucket": profile_bucket,
             "input_shapes": {name: list(tensors[name].shape) for name in INPUTS},
             "artifacts": artifacts, "numerical_comparison_performed": False,
             "compilation_status": "COMPILED", "physical_acceptance": False}
@@ -400,12 +411,15 @@ def main(argv=None):
     parser.add_argument("--system-desc-sha256")
     parser.add_argument("--case-id")
     parser.add_argument("--call-index", type=int, default=0)
+    parser.add_argument("--profile-bucket", type=int, choices=(32, 64, 128, 256, 512))
     parser.add_argument("--lease")
     parser.add_argument("--lease-sha256")
     parser.add_argument("--atol", type=float, default=1e-4)
     parser.add_argument("--rtol", type=float, default=1e-4)
     parser.add_argument("--save-export", action="store_true")
     args = parser.parse_args(argv)
+    if args.profile_bucket is not None and args.mode != "tt-compile-only":
+        parser.error("Experimental profiles are permitted only in offline compilation")
     for field in ("reference", "manifest", "cases", "output", "lease", "system_desc"):
         value = getattr(args, field)
         if value:
