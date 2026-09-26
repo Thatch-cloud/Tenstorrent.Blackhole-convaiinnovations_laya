@@ -9,13 +9,13 @@ acceptance. It is not a claim that the complete single-P150A service is ready.
 | Reproducible CPU reference | Original two CPU captures match exactly; fresh GitHub and WSL full-model checks also pass loaded-state integrity, exact inputs/answers, and fixed CPU logit tolerances | Intermittent local loaded-state failure remains unexplained; derived rotary buffers and representative application coverage remain |
 | Typed semantics and action outputs | Real fixtures cover choice, score, noul, single-option, mixed widths, batching, truncation, empty questions and temperature buckets | Physical device probability/decision parity, approved tolerances |
 | Strict full-model export | Five actual CPU graphs export and match the checked baseline with zero observed output error | All five FP32-source calls compiled offline (lowered IR includes BF16); prior local integrity failure remains unexplained; physical TT execution remains unverified |
-| Shared runtime admission | Exact-byte payload binding, injected grant verifier and durable reservation hook, bounded payload/token/work admission | Real platform credential issuer and ledger implementation |
+| Shared runtime admission | Exact-byte payload binding, pinned-key Ed25519 issuer/host/runtime/policy verification, journaled reservation consumption, bounded payload/token/work admission | Production authority, credential ownership and service composition |
 | Serialized shared worker | Tenant rotation, queue budgets, deadlines, cancellation and drain ownership tests | Local journal exposes interrupted work and prevents replay; device ownership recovery remains |
-| Runtime composition | Actual CPU backend through admission/worker/response path with two tenants using identical IDs | Production startup and deployment wiring |
+| Runtime composition | CPU backend contract tests and real pinned model through signed admission, ASGI, worker, Unix ledger peer and durable outbox; separate synthetic multi-tenant tests | Combined platform isolation/accounting acceptance, production startup and deployment wiring |
 | Internal HTTP transport | In-process ASGI tests cover bounded fragmented bodies, opaque grant forwarding, readiness, event-loop responsiveness and disconnect ownership | Real host dispatch and listener deployment |
 | Runtime readiness | Required model self-test, failed/draining states and preparation concurrency bound | Actual accelerator startup/warmup and hardware observations |
-| Installed contracts | Wheel contains all three schemas and isolated wheel import validates them | Versioned release and consumer dependency pins |
-| Usage | Measured local queue/execution times, question rows and encoded tokens; no invented accelerator time | Optional durable local journal/outbox now tested; authenticated delivery, authoritative accounting and billing policy remain |
+| Installed contracts | Wheel contains all five schemas and isolated wheel import validates runtime composition | Versioned release and consumer dependency pins |
+| Usage | Measured local queue/execution times, question rows and encoded tokens; durable journal/outbox with exact acknowledgment; no invented accelerator time | Production authenticated delivery, authoritative accounting and billing policy |
 | Single-board ownership | Read-only hardware inventory completed | Enforced allocation and version-specific initialization isolation |
 | Multi-tenant platform release | Initial protocol compatibility work is separate | Gateway, Management dispatch, Compute lifecycle, isolation/recovery tests and deployed acceptance |
 
@@ -70,3 +70,23 @@ CPU contract CI [36095760279](https://github.com/Thatch-cloud/Tenstorrent.Blackh
 The [explicit BF16/FP32 CPU candidate](bf16-cpu-experiment.md) passed exact state and activation-dtype checks, retaining discrete choices and order on the six fixtures. Calibrated option probabilities changed by up to 0.0104 and scores by 0.0164. Saturated action probabilities cannot validate action quality. This candidate is not promoted and has not been compiled or executed on TT.
 
 Runtime readback and unreconciled-startup protection were published in `e1a197c`; [CI run 36096388343](https://github.com/Thatch-cloud/Tenstorrent.Blackhole-convaiinnovations_laya/actions/runs/36096388343) passed. Runtime facts still require collection and production composition in Compute/Management. A local service test now verifies that multiple authenticated key fixtures share a tenant queue budget and fair rotation while durable receipts retain individual key attribution; this is not a deployed gateway test.
+
+## Current runtime composition evidence
+
+At `e136b60b3e4fe776a533cd1deb5b547b8e3a1b09`, [contract CI
+36235661495](https://github.com/Thatch-cloud/Tenstorrent.Blackhole-convaiinnovations_laya/actions/runs/36235661495)
+passed on Python 3.11 and 3.12: each job ran 355 tests, 3 optional skips and
+107 passing subtests, then validated the installed runtime and all five schemas.
+
+[Independent CPU run 36235662131](https://github.com/Thatch-cloud/Tenstorrent.Blackhole-convaiinnovations_laya/actions/runs/36235662131)
+downloaded the pinned assets, passed the full reference comparison, then ran the
+real CPU runtime composition test. Its startup self-test and admitted ASGI request
+matched the committed mixed-question-widths answers, including choice, score,
+noul, action outputs and the one-option case. It verified the signed grant, actual
+prepared counts, Unix peer credentials, original consumption/receipt bytes and
+outbox state after reopening the journal before and after acknowledgment.
+
+The ledger peer in that public test is a recording fixture, not a platform quota
+authority. This evidence does not establish the combined deployed platform path,
+cross-replica accounting, device ownership or TT numerical/performance acceptance.
+See [runtime composition](runtime-composition.md) for the reproducible command.
