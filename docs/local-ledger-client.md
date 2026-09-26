@@ -35,8 +35,9 @@ redirect following or proxy support. A fresh Unix connection is used per call.
 Consumption uses the remaining grant deadline capped at 15 seconds; receipt
 delivery is capped at 15 seconds. Errors expose fixed text without remote content.
 
-Host bootstrap, the grant verifier, journal recovery and receipt delivery loop
-still need explicit composition. Recover old-generation receipts using their
+The explicit [runtime composition](runtime-composition.md) wires the shared journal
+and bounded receipt batches. The host must still provide the grant verifier,
+launcher, receipt scheduling and authoritative recovery. Recover old-generation receipts using their
 original trusted runtime assignment; do not relabel them as a new generation.
 Successful local or CI tests do not establish platform deployment, hardware
 exclusion, accelerator parity or end-to-end physical acceptance.
