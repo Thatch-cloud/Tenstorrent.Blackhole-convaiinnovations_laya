@@ -350,4 +350,4 @@ def test_version_one_upgrade_preserves_execution_evidence(tmp_path):
     assert reopened.pending_consumptions() == []
     reopened.check_startup()
     with sqlite3.connect(path) as db:
-        assert db.execute("PRAGMA user_version").fetchone()[0] == 2
+        assert db.execute("PRAGMA user_version").fetchone()[0] == 3

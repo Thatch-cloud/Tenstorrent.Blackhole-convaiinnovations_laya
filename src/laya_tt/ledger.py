@@ -51,7 +51,7 @@ class ExecutionJournal:
             db.execute("PRAGMA journal_mode=WAL")
             db.execute("BEGIN IMMEDIATE")
             version = db.execute("PRAGMA user_version").fetchone()[0]
-            if version not in (0, 1, 2):
+            if version not in (0, 1, 2, 3):
                 raise JournalConflict("unsupported journal schema version")
             if version == 0:
                 if db.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchone():
@@ -80,6 +80,18 @@ class ExecutionJournal:
                     PRIMARY KEY(tenant, attempt), UNIQUE(tenant, reservation),
                     UNIQUE(tenant, usage_event))""")
                 db.execute("PRAGMA user_version=2")
+            if version in (0, 1, 2):
+                db.execute("ALTER TABLE consumption_intents RENAME TO consumption_intents_v2")
+                db.execute("""CREATE TABLE consumption_intents (
+                    tenant TEXT NOT NULL, attempt TEXT NOT NULL,
+                    reservation TEXT NOT NULL, usage_event TEXT NOT NULL,
+                    context_json TEXT NOT NULL, consumption BLOB NOT NULL,
+                    state TEXT NOT NULL CHECK(state IN ('pending','acknowledged','fenced')),
+                    PRIMARY KEY(tenant, attempt), UNIQUE(tenant, reservation),
+                    UNIQUE(tenant, usage_event))""")
+                db.execute("INSERT INTO consumption_intents SELECT * FROM consumption_intents_v2")
+                db.execute("DROP TABLE consumption_intents_v2")
+                db.execute("PRAGMA user_version=3")
             db.commit()
 
     @contextmanager
@@ -140,10 +152,25 @@ class ExecutionJournal:
             if changed.rowcount != 1:
                 raise JournalConflict("consumption acknowledgment differs from pending intent")
 
-    def pending_consumptions(self):
+    def confirm_unconsumed_fence(self, context, payload):
+        """Apply an authenticated exact-body unconsumed fence from the authority.
+
+        Caller verifies the response. Preserve identity tombstones permanently;
+        an acknowledged intent cannot be reconciled as unconsumed.
+        """
+        with self._transaction() as db:
+            changed = db.execute("""UPDATE consumption_intents SET state='fenced'
+                WHERE tenant=? AND attempt=? AND context_json=? AND consumption=? AND state='pending'""",
+                (context["tenant_id"], context["execution_attempt_id"], _json(dict(context)), payload))
+            if changed.rowcount != 1:
+                raise JournalConflict("unconsumed fence differs from pending intent")
+
+    def pending_consumptions(self, limit=100):
         """Recovery evidence only: never replay these requests or infer execution."""
+        if type(limit) is not int or not 1 <= limit <= 1000:
+            raise ValueError("consumption batch limit must be between 1 and 1000")
         with self._connect() as db:
-            rows = db.execute("SELECT * FROM consumption_intents ORDER BY rowid").fetchall()
+            rows = db.execute("SELECT * FROM consumption_intents WHERE state!='fenced' ORDER BY rowid LIMIT ?", (limit,)).fetchall()
         return [dict(row) for row in rows]
 
     def admitted(self, context, question_rows, encoded_tokens, runtime):
@@ -310,7 +337,7 @@ class ExecutionJournal:
             pending = db.execute(
                 "SELECT 1 FROM executions WHERE state IN ('admitted','running') LIMIT 1"
             ).fetchone()
-            pending_consumption = db.execute("SELECT 1 FROM consumption_intents LIMIT 1").fetchone()
+            pending_consumption = db.execute("SELECT 1 FROM consumption_intents WHERE state!='fenced' LIMIT 1").fetchone()
         if pending is not None or pending_consumption is not None:
             raise JournalConflict("execution recovery is required before startup")
 

@@ -104,6 +104,69 @@ class LocalLedgerClient:
 
         return consume
 
+    def recover_pending(self, journal, limit=8):
+        """Recover before application construction, using the original runtime assignment.
+
+        Only a verified unconsumed fence resolves an intent. Other outcomes are
+        observations, never permission to execute or acknowledge a local receipt.
+        A failed call preserves unresolved evidence; recovery may be retried.
+        """
+        from .ledger import ExecutionJournal
+        if not isinstance(journal, ExecutionJournal) or type(limit) is not int or not 1 <= limit <= 64:
+            raise ValueError("durable journal and recovery limit between 1 and 64 required")
+        observations = []
+        for intent in journal.pending_consumptions(limit):
+            try:
+                body = intent["consumption"]
+                value = _json(body)
+                context = _json(intent["context_json"])
+                # Validate the saved claims and closed payload without replacing
+                # its original bytes (the authority ACK hashes those bytes).
+                expected = encode_consumption(context, self._runtime,
+                    question_rows=value["prepared_question_rows"],
+                    encoded_tokens=value["prepared_encoded_tokens"])
+                if (type(value["deadline_unix_ms"]) is not int
+                        or any(type(value["binding"][key]) is not int
+                               for key in ("max_question_rows", "max_encoded_tokens"))
+                        or len(body) > 16384 or value != _json(expected)):
+                    raise ValueError()
+                raw = self._exchange("/v1/ledger/recover", body, {}, 200, time.monotonic() + 15)
+                ack = _json(raw)
+                if (type(ack) is not dict
+                        or set(ack) != {"schema_version", "request_body_sha256", "outcome"}
+                        or ack["schema_version"] != "1"
+                        or ack["request_body_sha256"] != hashlib.sha256(body).hexdigest()):
+                    raise ValueError()
+                outcome = ack["outcome"]
+                if type(outcome) is not dict:
+                    raise ValueError()
+                state = outcome.get("state")
+                if state == "unconsumed_fenced":
+                    if set(outcome) != {"state"}:
+                        raise ValueError()
+                    journal.confirm_unconsumed_fence(context, body)
+                elif state == "consumed":
+                    if set(outcome) != {"state", "prepared_question_rows", "prepared_encoded_tokens"}:
+                        raise ValueError()
+                    for key, ceiling in (("prepared_question_rows", "max_question_rows"),
+                                         ("prepared_encoded_tokens", "max_encoded_tokens")):
+                        if type(outcome[key]) is not int or not 1 <= outcome[key] <= context[ceiling]:
+                            raise ValueError()
+                elif state == "settled":
+                    if (set(outcome) != {"state", "receipt_id", "payload_sha256"}
+                            or not isinstance(outcome["receipt_id"], str)
+                            or not re.fullmatch(r"[A-Za-z0-9_-]{1,128}", outcome["receipt_id"])
+                            or not isinstance(outcome["payload_sha256"], str)
+                            or not re.fullmatch(r"[0-9a-f]{64}", outcome["payload_sha256"])):
+                        raise ValueError()
+                else:
+                    raise ValueError()
+                observations.append({"tenant": intent["tenant"], "attempt": intent["attempt"],
+                                     "outcome": outcome})
+            except Exception:
+                raise LedgerUnavailable("ledger recovery not acknowledged") from None
+        return observations
+
     def deliver_receipt(self, receipt: Receipt) -> bool:
         """Return True only for exact ACK; caller retains outbox evidence otherwise."""
         try:
