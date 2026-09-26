@@ -108,7 +108,8 @@ def test_unexpected_pump_failure_withdraws_http_and_reports_failed_shutdown():
     assert "private" not in str(output)
 
 
-def test_cancellation_waits_for_blocking_operation_to_finish():
+@pytest.mark.parametrize("cancellations", [1, 3])
+def test_cancellation_waits_for_blocking_operation_to_finish(cancellations):
     async def run():
         host = HostedRuntime(Application(), self_test=lambda: True)
         entered, release, finished = threading.Event(), threading.Event(), threading.Event()
@@ -119,10 +120,13 @@ def test_cancellation_waits_for_blocking_operation_to_finish():
         task = asyncio.create_task(host._blocking(operation))
         while not entered.is_set():
             await asyncio.sleep(.001)
-        task.cancel()
-        await asyncio.sleep(.01)
-        assert not task.done()
-        release.set()
+        try:
+            for _ in range(cancellations):
+                task.cancel()
+                await asyncio.sleep(.01)
+                assert not task.done(), "cancellation abandoned a running operation"
+        finally:
+            release.set()
         with pytest.raises(asyncio.CancelledError):
             await task
         assert finished.is_set()
