@@ -35,9 +35,19 @@ jobs:
           set -o pipefail
           docker run --rm --network none --read-only --cap-drop ALL \
             --security-opt no-new-privileges --tmpfs /tmp:rw,nosuid,nodev,size=512m \
-            -e LAYA_CPU_INTEGRATION=1 --entrypoint python laya-cpu-reference:test \
+            -e LAYA_CPU_INTEGRATION=1 -e LAYA_CPU_EXPECT_UID=10001 --entrypoint python laya-cpu-reference:test \
             -m unittest discover -s tests -p test_cpu_runtime.py -v \
             2>&1 | tee artifacts/cpu-image/test.log
+      - name: Test platform UID and explicit pod listener
+        run: |
+          set -o pipefail
+          docker run --rm --network none --read-only --cap-drop ALL \
+            --security-opt no-new-privileges --user 1000:1000 \
+            --tmpfs /tmp:rw,nosuid,nodev,size=512m \
+            -e LAYA_CPU_INTEGRATION=1 -e LAYA_CPU_EXPECT_UID=1000 -e LAYA_CPU_TEST_LISTEN_HOST=0.0.0.0 \
+            --entrypoint python laya-cpu-reference:test \
+            -m unittest discover -s tests -p test_cpu_runtime.py -v \
+            2>&1 | tee artifacts/cpu-image/platform-uid-test.log
       - name: Record installed dependencies
         if: always()
         run: |
@@ -87,6 +97,8 @@ jobs:
               run_id=os.environ['GITHUB_RUN_ID'], run_attempt=os.environ['GITHUB_RUN_ATTEMPT'],
               image_config_digest=tested, pull_reference=(root / 'pull-reference.txt').read_text().strip(),
               cpu_container_acceptance=True, registry_roundtrip=True,
+              tested_launch_profiles=[dict(uid=10001, listen_host='127.0.0.1'),
+                                      dict(uid=1000, listen_host='0.0.0.0')],
               physical_acceptance=False, deployed_acceptance=False)
           (root / 'release.json').write_text(json.dumps(report, indent=2) + '\n')
           PY

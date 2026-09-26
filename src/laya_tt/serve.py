@@ -95,12 +95,14 @@ def main(argv=None):
     parser.add_argument("--assignment", type=Path, required=True)
     parser.add_argument("--root", type=Path, required=True, help="pinned source, checkpoint and reference root")
     parser.add_argument("--port", type=int, required=True)
+    parser.add_argument("--listen-host", choices=("127.0.0.1", "0.0.0.0"), default="127.0.0.1",
+                        help="pod interface requires explicit host-owned network policy")
     args = parser.parse_args(argv)
     if not 1 <= args.port <= 65535:
         parser.error("port must be between 1 and 65535")
     import uvicorn
     app = build_cpu_runtime(args.assignment, root=args.root)
-    uvicorn.run(app, host="127.0.0.1", port=args.port, workers=1, reload=False,
+    uvicorn.run(app, host=args.listen_host, port=args.port, workers=1, reload=False,
                 lifespan="on", interface="asgi3", loop="asyncio", http="h11",
                 ws="none", proxy_headers=False, access_log=False,
                 limit_concurrency=32, backlog=32)

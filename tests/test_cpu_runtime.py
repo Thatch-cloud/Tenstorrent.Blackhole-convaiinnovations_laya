@@ -57,6 +57,10 @@ async def invoke(application, raw, grant):
 @unittest.skipUnless(os.environ.get("LAYA_CPU_INTEGRATION") == "1" and hasattr(socket, "SO_PEERCRED"),
                      "requires explicit CPU integration, pinned assets and Linux peer credentials")
 class CpuRuntimeIntegrationTests(unittest.TestCase):
+    def setUp(self):
+        if os.environ.get("LAYA_CPU_EXPECT_UID"):
+            self.assertEqual(os.getuid(), int(os.environ["LAYA_CPU_EXPECT_UID"]))
+
     def test_cpu_entrypoint_real_model_inventory_and_signal_shutdown(self):
         root = Path(__file__).resolve().parents[1]
         with tempfile.TemporaryDirectory(prefix="laya-entrypoint-") as temporary:
@@ -76,7 +80,8 @@ class CpuRuntimeIntegrationTests(unittest.TestCase):
                 port = reservation.getsockname()[1]
             with (directory / "process.log").open("w+", encoding="utf-8") as log:
                 process = subprocess.Popen([sys.executable, "-m", "laya_tt.serve",
-                    "--assignment", str(path), "--root", str(root), "--port", str(port)],
+                    "--assignment", str(path), "--root", str(root), "--port", str(port),
+                    "--listen-host", os.environ.get("LAYA_CPU_TEST_LISTEN_HOST", "127.0.0.1")],
                     stdout=log, stderr=subprocess.STDOUT)
                 try:
                     deadline = time.monotonic() + 120
@@ -105,7 +110,9 @@ class CpuRuntimeIntegrationTests(unittest.TestCase):
                 # Uvicorn restores and re-raises SIGTERM after graceful shutdown.
                 self.assertEqual(process.returncode, -signal.SIGTERM)
                 log.seek(0)
-                self.assertIn("Application shutdown complete", log.read())
+                diagnostics = log.read()
+                self.assertIn("Application shutdown complete", diagnostics)
+                self.assertIn("http://" + os.environ.get("LAYA_CPU_TEST_LISTEN_HOST", "127.0.0.1") + ":", diagnostics)
 
     def test_pinned_answers_signed_admission_real_peer_and_durable_outbox(self):
         self.exercise(False)

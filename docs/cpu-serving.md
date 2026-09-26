@@ -46,9 +46,12 @@ Retain journals across failure and reconcile uncertain consumption before restar
 laya-cpu-serve --assignment /run/laya/assignment.json --root /opt/laya --port 8091
 ```
 
-The process binds only `127.0.0.1`, uses one worker, requires ASGI lifespan,
+The process defaults to `127.0.0.1`, uses one worker, requires ASGI lifespan,
 disables reload, proxy-header trust, WebSockets and access logs, and bounds HTTP
-concurrency/backlog. Run it in the host service's network namespace. Local reachability
+concurrency/backlog. For a separate serving pod, the trusted launcher may explicitly
+select `--listen-host 0.0.0.0` and must enforce the host's ingress network policy.
+No proxy-header trust or grant/admission checks change with the listen address.
+Local reachability
 does not grant admission: requests still require signed context and acknowledged
 ledger consumption. Startup/shutdown use `HostedRuntime`; signal-driven shutdown
 drains execution and retains unacknowledged receipts. Shutdown does not prove
@@ -65,7 +68,11 @@ dependencies and apt package resolution are not yet a reproducible build lock.
 The `CPU reference image acceptance` workflow builds the image and runs all three
 real CPU runtime tests as UID/GID 10001, without network, capabilities, privilege
 escalation or a writable root filesystem. Only `/tmp` is writable for test journals.
-It retains the image ID, inspection metadata, dependency versions and test log.
+It additionally runs the same tests as UID/GID 1000 with the explicit pod listener.
+Both profiles must pass before publication. The tests assert the effective UID;
+the local bridge and worker share that UID and private socket directory. A group
+permission workaround does not satisfy the existing ledger peer contract.
+It retains the image ID, inspection metadata, dependency versions and test logs.
 By default it does not publish an image. A manual dispatch from `main` with
 `publish=true` pushes the already tested image to
 `ghcr.io/thatch-cloud/laya-cpu-reference` using the repository's scoped Actions
@@ -80,9 +87,10 @@ A passed job proves CPU container acceptance only; publication does not deploy a
 service. Production journals require a persistent writable volume; never
 use the test's temporary journal layout for serving tenant work.
 
-The entry point binds loopback within its network namespace. A host service must
-share that namespace or provide an explicitly designed local transport; exposing
-a container port alone does not make a loopback listener reachable.
+For the default loopback listener, a host service must share its network namespace;
+exposing a container port alone does not make a loopback listener reachable. The
+explicit pod listener enables pod-IP routing, but its container test does not
+prove Kubernetes network policy, volume ownership, host affinity or orchestration.
 
 TT image publication, remote control plane, automatic assignment,
 Compute lifecycle binding and physical accelerator acceptance remain unfinished.
