@@ -68,7 +68,7 @@ CPU contract CI [36095760279](https://github.com/Thatch-cloud/Tenstorrent.Blackh
 
 ## Mixed-precision CPU observation and runtime follow-up
 
-The [explicit BF16/FP32 CPU candidate](bf16-cpu-experiment.md) passed exact state and activation-dtype checks, retaining discrete choices and order on the six fixtures. Calibrated option probabilities changed by up to 0.0104 and scores by 0.0164. Saturated action probabilities cannot validate action quality. This candidate is not promoted and has not been compiled or executed on TT.
+The [explicit BF16/FP32 CPU candidate](bf16-cpu-experiment.md) passed exact state and activation-dtype checks, retaining discrete choices and order on the six fixtures. Calibrated option probabilities changed by up to 0.0104 and scores by 0.0164. Saturated action probabilities cannot validate action quality. Its five finite profiles subsequently compiled offline in run 36274273596 with original and converted state verification and retained artifacts. This candidate is not promoted and has not executed on TT; compilation does not establish lowered operator precision or numerical parity.
 
 Runtime readback and unreconciled-startup protection were published in `e1a197c`; [CI run 36096388343](https://github.com/Thatch-cloud/Tenstorrent.Blackhole-convaiinnovations_laya/actions/runs/36096388343) passed. Runtime facts still require collection and production composition in Compute/Management. A local service test now verifies that multiple authenticated key fixtures share a tenant queue budget and fair rotation while durable receipts retain individual key attribution; this is not a deployed gateway test.
 
