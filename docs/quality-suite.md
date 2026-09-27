@@ -27,6 +27,35 @@ Both have deterministic selection and content hashes. The preparer verifies
 every file hash and source row count before converting labels. It does not run
 a model, truncate inputs or establish numerical acceptance.
 
+After preparing the pinned checkpoint and upstream source using the normal CPU
+reference instructions, capture the pilot with:
+
+```sh
+python scripts/build_quality_reference.py --cases artifacts/quality/pilot.jsonl
+```
+
+The manual CPU-reference workflow accepts `quality_pilot=true` to run this on an
+independent CPU host after checking the original six-case baseline. The capture
+uses native upstream inference, retains serialized inputs, logits, action logits
+and decoded answers, and refuses to replace an existing output directory. Native
+512-token compatibility truncation applies; this pilot is not the native API's
+oversize-rejection test or the final full-suite quality gate.
+
+Score a native capture, optionally comparing another capture with identical
+case identities, inputs and labels:
+
+```sh
+python scripts/score_quality_capture.py artifacts/quality-reference/capture --output artifacts/quality-metrics.json
+python scripts/score_quality_capture.py artifacts/candidate/capture --baseline artifacts/quality-reference/capture --output artifacts/quality-drift.json
+```
+
+The scorer verifies answer-file hashes and native answer structure. It reports
+per-dataset metrics and disagreements without declaring acceptance. Probability
+quantiles use nearest rank; native four-decimal probabilities remain unchanged.
+ECE is reported for choice/noul only, because an ordinal expected score is not
+a categorical predicted answer. It does not yet calculate bootstrap intervals
+or enforce the proposed limits below.
+
 ## Proposed engineering acceptance criteria
 
 There is no universal BF16 probability-error standard. Freeze these proposed
@@ -60,5 +89,16 @@ label Laya's auxiliary action head. Retain action-logit/probability checks and
 add non-saturated action-boundary examples before claiming action qualification.
 No new temperature fitting or checkpoint changes are allowed in this comparison.
 
-Status: dataset preparation recipe only. CPU baselines, TT evaluation, metric
-implementation and release qualification are not yet completed.
+The [independent CPU pilot](https://github.com/Thatch-cloud/Tenstorrent.Blackhole-convaiinnovations_laya/actions/runs/36357873844)
+completed all 256 requests. All 1,792 retained tensor hashes were independently
+checked; loaded persistent state matched all 206 tensors. Input lengths were
+37–462 tokens, so this sample adds no 512-token boundary coverage.
+`configs/quality-pilot-cpu-baseline.json` retains the reviewed aggregate only;
+raw dataset text and host captures remain untracked.
+
+With 64 examples per dataset, observed accuracy was 90.625% AG News, 67.1875%
+Emotion and 73.4375% BoolQ; SST-5 MAE was 0.7474 on the 0–4 scale. These are
+small-sample results for these prompts, not reproductions of upstream headline
+scores or release quality claims. The associated calibration metrics are in the
+aggregate file. TT evaluation, confidence-interval gates and release
+qualification are not yet completed.

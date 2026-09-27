@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "scope": "diagnostic CPU FP32 pilot; not full-suite qualification",
+  "source_run": "https://github.com/Thatch-cloud/Tenstorrent.Blackhole-convaiinnovations_laya/actions/runs/36357873844",
+  "prepared_cases_sha256": "e3ee4b7b28d085d02587b428ac13af844bedb86286dd9882824d5bde7474f12f",
+  "reference_sha256": "af71b04025dc2944c2c611035965a4e17928aaa11f99a1a8544af651aefd8177",
+  "checkpoint_revision": "55cf4c4ebb4ebe31b2550e8bdf3bd21b99753851",
+  "checked_persistent_tensors": 206,
+  "tensor_hashes_verified": 1792,
+  "captured_cases": 256,
+  "datasets": {
+    "ag_news": {
+      "rows": 64,
+      "type": "choice",
+      "accuracy": 0.90625,
+      "brier": 0.11430774203124999,
+      "nll": 0.20508602508123722,
+      "ece_15": 0.050228125,
+      "score_mae": null
+    },
+    "boolq": {
+      "rows": 64,
+      "type": "noul",
+      "accuracy": 0.734375,
+      "brier": 0.3217336703125,
+      "nll": 0.4744854998564181,
+      "ece_15": 0.14706718749999997,
+      "score_mae": null
+    },
+    "emotion": {
+      "rows": 64,
+      "type": "choice",
+      "accuracy": 0.671875,
+      "brier": 0.5381802725,
+      "nll": 1.1900945202113646,
+      "ece_15": 0.25363749999999996,
+      "score_mae": null
+    },
+    "sst5": {
+      "rows": 64,
+      "type": "score",
+      "accuracy": null,
+      "brier": 0.7856096521875,
+      "nll": 1.4760529999975236,
+      "ece_15": null,
+      "score_mae": 0.7474046875
+    }
+  },
+  "physical_acceptance": false,
+  "quality_qualification": false
+}
