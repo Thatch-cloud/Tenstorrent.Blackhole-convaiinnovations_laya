@@ -89,6 +89,16 @@ label Laya's auxiliary action head. Retain action-logit/probability checks and
 add non-saturated action-boundary examples before claiming action qualification.
 No new temperature fitting or checkpoint changes are allowed in this comparison.
 
-Status: preparation, capture and descriptive metric tools are implemented.
-Independent CPU pilot execution is pending. TT evaluation, confidence-interval
-gates and release qualification are not yet completed.
+The [independent CPU pilot](https://github.com/Thatch-cloud/Tenstorrent.Blackhole-convaiinnovations_laya/actions/runs/36357873844)
+completed all 256 requests. All 1,792 retained tensor hashes were independently
+checked; loaded persistent state matched all 206 tensors. Input lengths were
+37–462 tokens, so this sample adds no 512-token boundary coverage.
+`configs/quality-pilot-cpu-baseline.json` retains the reviewed aggregate only;
+raw dataset text and host captures remain untracked.
+
+With 64 examples per dataset, observed accuracy was 90.625% AG News, 67.1875%
+Emotion and 73.4375% BoolQ; SST-5 MAE was 0.7474 on the 0–4 scale. These are
+small-sample results for these prompts, not reproductions of upstream headline
+scores or release quality claims. The associated calibration metrics are in the
+aggregate file. TT evaluation, confidence-interval gates and release
+qualification are not yet completed.
