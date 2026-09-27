@@ -27,6 +27,20 @@ Both have deterministic selection and content hashes. The preparer verifies
 every file hash and source row count before converting labels. It does not run
 a model, truncate inputs or establish numerical acceptance.
 
+After preparing the pinned checkpoint and upstream source using the normal CPU
+reference instructions, capture the pilot with:
+
+```sh
+python scripts/build_quality_reference.py --cases artifacts/quality/pilot.jsonl
+```
+
+The manual CPU-reference workflow accepts `quality_pilot=true` to run this on an
+independent CPU host after checking the original six-case baseline. The capture
+uses native upstream inference, retains serialized inputs, logits, action logits
+and decoded answers, and refuses to replace an existing output directory. Native
+512-token compatibility truncation applies; this pilot is not the native API's
+oversize-rejection test or the final full-suite quality gate.
+
 ## Proposed engineering acceptance criteria
 
 There is no universal BF16 probability-error standard. Freeze these proposed
