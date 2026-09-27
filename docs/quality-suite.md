@@ -41,6 +41,21 @@ and decoded answers, and refuses to replace an existing output directory. Native
 512-token compatibility truncation applies; this pilot is not the native API's
 oversize-rejection test or the final full-suite quality gate.
 
+Score a native capture, optionally comparing another capture with identical
+case identities, inputs and labels:
+
+```sh
+python scripts/score_quality_capture.py artifacts/quality-reference/capture --output artifacts/quality-metrics.json
+python scripts/score_quality_capture.py artifacts/candidate/capture --baseline artifacts/quality-reference/capture --output artifacts/quality-drift.json
+```
+
+The scorer verifies answer-file hashes and native answer structure. It reports
+per-dataset metrics and disagreements without declaring acceptance. Probability
+quantiles use nearest rank; native four-decimal probabilities remain unchanged.
+ECE is reported for choice/noul only, because an ordinal expected score is not
+a categorical predicted answer. It does not yet calculate bootstrap intervals
+or enforce the proposed limits below.
+
 ## Proposed engineering acceptance criteria
 
 There is no universal BF16 probability-error standard. Freeze these proposed
@@ -74,5 +89,6 @@ label Laya's auxiliary action head. Retain action-logit/probability checks and
 add non-saturated action-boundary examples before claiming action qualification.
 No new temperature fitting or checkpoint changes are allowed in this comparison.
 
-Status: dataset preparation recipe only. CPU baselines, TT evaluation, metric
-implementation and release qualification are not yet completed.
+Status: preparation, capture and descriptive metric tools are implemented.
+Independent CPU pilot execution is pending. TT evaluation, confidence-interval
+gates and release qualification are not yet completed.
