@@ -18,6 +18,25 @@ These observations establish an invalid loaded baseline. They do not identify wh
 
 Initial Windows captures must not serve as acceptance evidence. Regenerate and independently repeat the reference in a clean environment after this gate passes. The gate detects checkpoint-to-memory disagreement; separate repeatability tests still establish stable computation and derived-buffer behavior.
 
+## Derived rotary-buffer diagnostic
+
+Run `python scripts/probe_rotary_cpu.py --output artifacts/rotary-observation.json`
+with the pinned reference dependencies and cached source/checkpoint. The script
+validates those inputs, loads the CPU model once, and compares all four
+nonpersistent ModernBERT rotary buffers with `1 / theta ** (index / head_dim)`
+computed independently in NumPy float64 and rounded to float32. It records
+absolute and ULP differences, then applies the existing exact persistent-state
+gate. Unknown buffer inventories, unsupported rotary configurations, invalid
+values and checkpoint mismatches fail the diagnostic. It never retries loading
+or repairs tensors, and refuses to overwrite an earlier report.
+
+A completed diagnostic is an observation, not a numerical acceptance threshold.
+The report always retains `loaded_model_acceptance: false` and
+`physical_acceptance: false`; checkpoint verification still explicitly lists
+derived buffers as unchecked by that checkpoint comparison. Reports belong in
+ignored `artifacts/` and require review before publication. A later successful
+load does not invalidate or explain the quarantined baseline failure above.
+
 
 ## Mismatch diagnostics
 
