@@ -8,6 +8,7 @@ import math
 from pathlib import Path
 import statistics
 import sys
+import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
@@ -95,6 +96,33 @@ def summarize(rows):
             "score_mae": statistics.mean(r["score_error"] for r in rows) if kind == "score" else None}
 
 
+def paired_intervals(rows, prior, *, seed=20260928, resamples=2000):
+    """Percentile paired-row bootstrap; no independent resampling of outputs."""
+    if not rows or len(rows) != len(prior) or resamples < 100:
+        raise ValueError("Bootstrap requires paired nonempty rows and at least 100 resamples")
+    measures = {
+        "brier_increase": [a["brier"] - b["brier"] for a, b in zip(rows, prior)],
+        "nll_increase": [a["nll"] - b["nll"] for a, b in zip(rows, prior)],
+    }
+    if rows[0]["kind"] == "score":
+        measures["score_mae_increase"] = [a["score_error"] - b["score_error"] for a, b in zip(rows, prior)]
+        measures["score_abs_mean"] = [abs(a["score"] - b["score"]) for a, b in zip(rows, prior)]
+    else:
+        measures["accuracy_loss"] = [b["correct"] - a["correct"] for a, b in zip(rows, prior)]
+        measures["agreement"] = [int(a["predicted"] == b["predicted"]) for a, b in zip(rows, prior)]
+    values = np.asarray(list(measures.values()), dtype=np.float64).T
+    rng = np.random.default_rng(seed)
+    samples = []
+    for start in range(0, resamples, 32):
+        indices = rng.integers(0, len(rows), size=(min(32, resamples - start), len(rows)))
+        samples.append(values[indices].mean(axis=1))
+    bounds = np.quantile(np.concatenate(samples), [0.025, 0.975], axis=0, method="linear")
+    return {"method": "paired_row_percentile", "confidence": 0.95,
+            "seed": seed, "resamples": resamples, "rows": len(rows),
+            "intervals": {name: {"lower": float(bounds[0, i]), "upper": float(bounds[1, i])}
+                          for i, name in enumerate(measures)}}
+
+
 def score(records, baseline=None):
     if baseline is not None and records.keys() != baseline.keys():
         raise ValueError("Candidate and baseline case identities differ")
@@ -109,6 +137,7 @@ def score(records, baseline=None):
     result = {"scope": "native_decoded_quality_metrics", "physical_acceptance": False,
               "quality_qualification": False, "datasets": {}}
     for dataset, identities in sorted(grouped.items()):
+        identities.sort()
         rows = [observation(records[i]) for i in identities]
         summary = summarize(rows)
         result["datasets"][dataset] = summary
@@ -137,6 +166,7 @@ def score(records, baseline=None):
                           accuracy_loss=prior_summary["accuracy"] - summary["accuracy"],
                           disagreement_ids=[i for i, a, b in zip(identities, rows, prior) if a["predicted"] != b["predicted"]])
         summary["paired"] = paired
+        paired["bootstrap"] = paired_intervals(rows, prior)
     return result
 
 

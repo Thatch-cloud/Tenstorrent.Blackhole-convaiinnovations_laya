@@ -89,6 +89,15 @@ label Laya's auxiliary action head. Retain action-logit/probability checks and
 add non-saturated action-boundary examples before claiming action qualification.
 No new temperature fitting or checkpoint changes are allowed in this comparison.
 
+The paired scorer now reports 95% percentile intervals from 2,000 paired-row
+resamples (NumPy default RNG, seed 20260928), sorted by case identity so capture
+order cannot change the result. It resamples candidate and baseline together
+within each dataset for accuracy loss, agreement, Brier/NLL increases and ordinal
+MAE increase/mean score drift. These are diagnostic intervals, not automatic
+acceptance gates or simultaneous bounds across metrics. A degenerate interval
+from identical observations does not establish a population error bound. The
+pilot remains too small for release qualification.
+
 The [independent CPU pilot](https://github.com/Thatch-cloud/Tenstorrent.Blackhole-convaiinnovations_laya/actions/runs/36357873844)
 completed all 256 requests. All 1,792 retained tensor hashes were independently
 checked; loaded persistent state matched all 206 tensors. Input lengths were
