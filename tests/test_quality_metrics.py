@@ -28,6 +28,9 @@ def test_hand_calculated_metrics_and_identical_control():
     assert result["ece_15"] == pytest.approx(0.2)
     assert result["paired"]["agreement"] == 1
     assert result["paired"]["probability_abs_max"] == 0
+    intervals = result["paired"]["bootstrap"]["intervals"]
+    assert intervals["accuracy_loss"] == {"lower": 0, "upper": 0}
+    assert intervals["agreement"] == {"lower": 1, "upper": 1}
 
 
 def test_relabelled_or_missing_baseline_cannot_compare():
@@ -65,3 +68,20 @@ def test_boolean_and_ordinal_metrics_use_native_semantics():
     assert result["sst5"]["score_mae"] == 0.25
     assert result["sst5"]["ece_15"] is None
     assert result["sst5"]["paired"]["score_abs_max"] == 0
+
+
+def test_bootstrap_keeps_pairs_and_is_independent_of_capture_order():
+    baseline = example()
+    baseline["ag_news:1"] = copy.deepcopy(baseline["ag_news:0"])
+    candidate = copy.deepcopy(baseline)
+    candidate["ag_news:1"]["answer"].update(choice="no", probabilities={"yes": 0.3, "no": 0.7}, answer_confidence=0.7)
+    first = module.score(candidate, baseline)
+    second = module.score(dict(reversed(list(candidate.items()))), baseline)
+    assert first == second
+    intervals = first["datasets"]["ag_news"]["paired"]["bootstrap"]["intervals"]
+    assert intervals["accuracy_loss"] == {"lower": 0, "upper": 1}
+    assert intervals["agreement"] == {"lower": 0, "upper": 1}
+    # Shared per-row correctness cancels exactly, despite different predictions.
+    rows = [module.observation(v) for v in candidate.values()]
+    identical = module.paired_intervals(rows, rows)
+    assert identical["intervals"]["accuracy_loss"] == {"lower": 0, "upper": 0}
