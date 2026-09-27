@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "upstream_reference": "970dc8c5f63d7b886a68409493f37d569424f933",
+  "datasets": [
+    {"id":"ag_news","repository":"fancyzhx/ag_news","revision":"eb185aade064a813bc0b7f42de02595523103ca4","file":"data/test-00000-of-00001.parquet","split":"test","sha256":"71de87ec66bc5737752a2502204dfa6d7fe9856ade3ea444dc6317789a4f13fb","rows":7600,"type":"choice","training_relationship":"in-task retention according to pinned upstream benchmark"},
+    {"id":"emotion","repository":"dair-ai/emotion","revision":"cab853a1dbdf4c42c2b3ef2173804746df8825fe","file":"split/test-00000-of-00001.parquet","split":"test","sha256":"6f8407fa1ca9c310f55781f082ed73812f6551e8dda2c61973123a121869245b","rows":2000,"type":"choice","training_relationship":"held-out source according to pinned upstream benchmark"},
+    {"id":"sst5","repository":"SetFit/sst5","revision":"e51bdcd8cd3a30da231967c1a249ba59361279a3","file":"test.jsonl","split":"test","sha256":"1384216112a34f3d70b6fa210762f3399bb080410c0456ac6e54a5cb413f04b2","rows":2210,"type":"score","training_relationship":"held-out source according to pinned upstream benchmark"},
+    {"id":"boolq","repository":"google/boolq","revision":"35b264d03638db9f4ce671b711558bf7ff0f80d5","file":"data/validation-00000-of-00001.parquet","split":"validation","sha256":"52355d11524b4b874a9b9dcc278feb10f672d52c4f4eff9872e695ede59820f8","rows":3270,"type":"noul","training_relationship":"in-task retention according to pinned upstream benchmark"}
+  ]
+}
