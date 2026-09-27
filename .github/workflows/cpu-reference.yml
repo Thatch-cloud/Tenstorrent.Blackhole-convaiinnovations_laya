@@ -35,6 +35,8 @@ jobs:
         run: python scripts/download_checkpoint.py
       - name: Capture and compare full CPU reference once
         run: python scripts/verify_reference_host.py --output artifacts/host-reference/capture
+      - name: Observe loaded rotary buffers independently
+        run: python scripts/probe_rotary_cpu.py --output artifacts/host-reference/rotary.json
       - name: Retain CPU observations even on failure
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
