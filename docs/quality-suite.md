@@ -81,7 +81,7 @@ For each dataset and each CPU comparison:
   probabilities only for NLL at 1e-12. Report 15-bin equal-width ECE as a
   diagnostic, including sample counts; it is sensitive to bin boundaries.
 - SST-5 score drift: mean absolute difference at most 0.02 and maximum 0.10
-  on the native 0â€“4 scale; ground-truth MAE increase at most 0.02.
+  on the native 0–4 scale; ground-truth MAE increase at most 0.02.
 
 Report paired bootstrap confidence intervals with a fixed seed alongside point
 estimates; full-suite results are required for qualification. These tasks do not
@@ -100,7 +100,6 @@ checkpoint-level examples. If representative non-saturated examples cannot be
 established, report action qualification as unproven; do not silently recalibrate
 the head, substitute confidence, or relax the release gate.
 
-
 The paired scorer now reports 95% percentile intervals from 2,000 paired-row
 resamples (NumPy default RNG, seed 20260928), sorted by case identity so capture
 order cannot change the result. It resamples candidate and baseline together
@@ -113,12 +112,12 @@ pilot remains too small for release qualification.
 The [independent CPU pilot](https://github.com/Thatch-cloud/Tenstorrent.Blackhole-convaiinnovations_laya/actions/runs/36357873844)
 completed all 256 requests. All 1,792 retained tensor hashes were independently
 checked; loaded persistent state matched all 206 tensors. Input lengths were
-37â€“462 tokens, so this sample adds no 512-token boundary coverage.
+37–462 tokens, so this sample adds no 512-token boundary coverage.
 `configs/quality-pilot-cpu-baseline.json` retains the reviewed aggregate only;
 raw dataset text and host captures remain untracked.
 
 With 64 examples per dataset, observed accuracy was 90.625% AG News, 67.1875%
-Emotion and 73.4375% BoolQ; SST-5 MAE was 0.7474 on the 0â€“4 scale. These are
+Emotion and 73.4375% BoolQ; SST-5 MAE was 0.7474 on the 0–4 scale. These are
 small-sample results for these prompts, not reproductions of upstream headline
 scores or release quality claims. The associated calibration metrics are in the
 aggregate file. TT evaluation, confidence-interval gates and release
