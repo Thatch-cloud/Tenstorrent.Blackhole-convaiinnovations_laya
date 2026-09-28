@@ -89,7 +89,7 @@ label Laya's auxiliary action head. Retain action-logit/probability checks and
 add non-saturated action-boundary examples before claiming action qualification.
 No new temperature fitting or checkpoint changes are allowed in this comparison.
 
-The [pinned upstream limitations](https://github.com/NandhaKishorM/laya/blob/970dc8c5f63d7b886a68409493f37d569424f933/README.md#known-limitations)
+The [pinned upstream limitations](https://github.com/NandhaKishorM/laya/blob/970dc8c5f63d7b886a68409493f37d569424f933/README.md#honest-limits)
 already identify near-universal saturation of `action.act_probability` and poor
 correctness discrimination. Treat that as a checkpoint limitation to investigate,
 not evidence that an accelerator port introduced the saturation. Preserve native
