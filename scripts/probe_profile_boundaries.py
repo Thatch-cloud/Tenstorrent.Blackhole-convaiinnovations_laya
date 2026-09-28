@@ -50,7 +50,7 @@ def main(argv=None):
         checkpoint = root / manifest["checkpoint"]["path"]
         digest = manifest["checkpoint"]["files"]["model.safetensors"]
         report.update(script_sha256=sha256_file(__file__),
-                      profile_helper_sha256=sha256_file(root / "scripts/shape_profiles.py"),
+                      profile_helper_sha256=sha256_file(root / "src/laya_tt/shape_profiles.py"),
                       manifest_sha256=sha256_file(manifest_path), torch_version=torch.__version__,
                       initialization_warnings=backend.initialization_warnings,
                       loaded_state_integrity=verify_loaded_state(agent.model, checkpoint, expected_sha256=digest))

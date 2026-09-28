@@ -126,14 +126,14 @@ def main(argv=None):
     else:
         jobs = [(case, call, None) for case, call in jobs]
     output.mkdir(parents=True)
-    policy_sha256 = sha(root / "scripts/probe_bf16_cpu.py") if args.precision == "mixed-bf16-fp32" else None
+    policy_sha256 = sha(root / "src/laya_tt/precision.py") if args.precision == "mixed-bf16-fp32" else None
     aggregate = {"schema_version": 1, "kind": "offline_fp32_compiler_matrix" if args.precision == "float32" else "offline_mixed_precision_compiler_matrix",
                  "physical_acceptance": False, "numerical_comparison_performed": False,
                  "reference_sha256": REFERENCE_SHA, "descriptor_sha256": DESCRIPTOR_SHA,
                  "toolchain_commit": TOOLCHAIN, "dtype": args.precision, "cases": [],
                  "precision_policy_sha256": policy_sha256,
                  "compiler_harness_sha256": sha(root / "scripts/compiler_spike.py"),
-                 "profile_helper_sha256": sha(root / "scripts/shape_profiles.py") if args.profile_buckets else None,
+                 "profile_helper_sha256": sha(root / "src/laya_tt/shape_profiles.py") if args.profile_buckets else None,
                  "runner_sha256": sha(Path(__file__)),
                  "note": "Elapsed times are host compilation duration, not inference latency"}
     env = os.environ.copy()

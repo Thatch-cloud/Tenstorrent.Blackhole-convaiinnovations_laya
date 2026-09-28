@@ -38,6 +38,7 @@ single-row profiles (32, 64, 128, 256, and 512 tokens). FP32 source is the defau
 the mixed BF16/FP32 policy is experimental and has no hardware parity acceptance.
 
 See [compiler instructions](docs/compiler-spike.md), [shape and precision probes](docs/model-experiments.md),
+[reusable model helpers](docs/model-execution-helpers.md),
 [descriptor migration](docs/descriptor-migration.md), [CPU reference](docs/reference.md),
 and [loaded-state validation](docs/integrity.md).
 

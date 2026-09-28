@@ -362,7 +362,7 @@ def run_compile_only(args, reference, manifest, source, checkpoint, output, prog
         from laya_tt.integrity import verify_loaded_state
         progress["precision_policy"] = {
             "name": "mixed-bf16-fp32",
-            "helper_sha256": sha256_file(ROOT / "scripts/probe_bf16_cpu.py"),
+            "helper_sha256": sha256_file(ROOT / "src/laya_tt/precision.py"),
             "inventory": apply_candidate_policy(model),
         }
         progress["candidate_loaded_state_integrity"] = verify_loaded_state(
@@ -400,7 +400,7 @@ def run_compile_only(args, reference, manifest, source, checkpoint, output, prog
             raise ValueError("Pinned tokenizer and encoder padding identities differ")
         profiled, = profile_rows(tuple(tensors[name] for name in INPUTS), pad_id, sequence_bucket=profile_bucket)
         tensors = dict(zip(INPUTS, profiled))
-        progress["profile_layout"] = {"helper_sha256": sha256_file(ROOT / "scripts/shape_profiles.py"),
+        progress["profile_layout"] = {"helper_sha256": sha256_file(ROOT / "src/laya_tt/shape_profiles.py"),
                                       "pad_token_id": pad_id, "bucket": profile_bucket,
                                       "inputs": {name: {"dtype": str(value.dtype), "shape": list(value.shape),
                                           "sha256": hashlib.sha256(value.contiguous().numpy().tobytes()).hexdigest()}

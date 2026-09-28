@@ -11,6 +11,7 @@ from compiler_spike import INPUTS, checked_file, compare_arrays, load_call, read
 from probe_bf16_cpu import BASELINE_SHA, decoded_metrics
 
 from shape_profiles import BUCKETS, MARKERS, profile_rows
+from laya_tt.profiled_forward import profiled_forward
 
 
 def main(argv=None):
@@ -50,7 +51,8 @@ def main(argv=None):
         model = agent.model.float().eval()
         digest = manifest["checkpoint"]["files"]["model.safetensors"]
         report.update(script_sha256=sha256_file(__file__), torch_version=torch.__version__,
-                      profile_helper_sha256=sha256_file(root / "scripts/shape_profiles.py"),
+                      profile_helper_sha256=sha256_file(root / "src/laya_tt/shape_profiles.py"),
+                      forward_helper_sha256=sha256_file(root / "src/laya_tt/profiled_forward.py"),
                       manifest_sha256=sha256_file(root / "configs/checkpoint-lock.json"),
                       loaded_state_integrity=verify_loaded_state(model, checkpoint, expected_sha256=digest))
         original_forward = model.forward
@@ -67,9 +69,8 @@ def main(argv=None):
                     raise ValueError("Input differs from pinned reference")
                 # Padding is computational overhead, never additional encoded-token usage.
                 profiles = list(profile_rows(inputs, agent.tok.pad_token_id))
-                results = [original_forward(*profile) for profile in profiles]
-                logits = torch.cat([result[0][:, :inputs[2].shape[1]] for result in results])
-                actions = torch.cat([result[1] for result in results])
+                logits, actions = profiled_forward(original_forward, inputs,
+                    device="cpu", pad_token_id=agent.tok.pad_token_id)
                 comparisons = {name: compare_arrays(actual.detach().numpy(), baseline[name].numpy(), 1e-4, 1e-4)
                                for name, actual in (("logits", logits), ("act_logits", actions))}
                 row["forwards"].append({"outputs": comparisons, "profile_shapes": [list(p[0].shape) for p in profiles],
