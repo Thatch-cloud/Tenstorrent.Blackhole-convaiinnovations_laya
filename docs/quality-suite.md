@@ -53,8 +53,8 @@ The scorer verifies answer-file hashes and native answer structure. It reports
 per-dataset metrics and disagreements without declaring acceptance. Probability
 quantiles use nearest rank; native four-decimal probabilities remain unchanged.
 ECE is reported for choice/noul only, because an ordinal expected score is not
-a categorical predicted answer. It does not yet calculate bootstrap intervals
-or enforce the proposed limits below.
+a categorical predicted answer. Paired bootstrap intervals are described below. The scorer does not enforce
+the proposed limits below.
 
 ## Proposed engineering acceptance criteria
 
@@ -111,3 +111,44 @@ small-sample results for these prompts, not reproductions of upstream headline
 scores or release quality claims. The associated calibration metrics are in the
 aggregate file. TT evaluation, confidence-interval gates and release
 qualification are not yet completed.
+
+
+## Complete CPU reference
+
+`configs/quality-full-cpu-baseline.json` records the reviewed full-suite aggregate
+for the same pinned checkpoint, dataset revisions and prompt recipe. It includes
+15,080 requests; all 105,560 tensor hashes and 15,080 answer hashes were verified.
+Reconstructed input records match the prepared-case digest, and rerunning the
+scorer reproduced the recorded metrics exactly. Loaded persistent model state
+matched all 206 checkpoint tensors; nonpersistent rotary buffers are outside that
+checkpoint comparison. Raw captures are not included in this public aggregate.
+
+| Dataset | Cases | CPU result |
+| --- | ---: | ---: |
+| AG News | 7,600 | Accuracy 92.3158% |
+| BoolQ | 3,270 | Accuracy 83.2722% |
+| Emotion | 2,000 | Accuracy 59.25% |
+| SST-5 | 2,210 | Score MAE 0.83786 |
+
+These results describe this recipe, not a byte-identical reproduction of upstream
+benchmark prompts. Calibration metrics and the relevant library versions are in
+the aggregate. A complete CPU reference does not establish accelerator fidelity,
+action-head qualification or application suitability.
+
+Recorded lengths range from 36 to 512 tokens. Thirteen BoolQ cases reach exactly
+512 tokens; none in the pilot did. A recorded length equal to the limit alone does
+not prove truncation of the original text. Keep all cases and the explicit semantic
+boundary fixtures in accelerator acceptance. The aggregate also reports counts
+for the 64/128/256/512 padded profiles.
+
+To reproduce the complete reference instead of the pilot, use the pinned setup
+above, then run:
+
+```sh
+python scripts/prepare_quality_suite.py --download --output artifacts/quality/full.jsonl
+python scripts/build_quality_reference.py --cases artifacts/quality/full.jsonl --output artifacts/quality-full-reference
+python scripts/score_quality_capture.py artifacts/quality-full-reference/capture --output artifacts/quality-full-reference/metrics.json
+```
+
+Use a new capture output directory. The expected prepared-case SHA256 is
+`4cccca3d98b3a0116ea2438133e755fd6d324a9097edb9517be6603191baa025`.

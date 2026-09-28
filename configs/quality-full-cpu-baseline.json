@@ -1,0 +1,132 @@
+{
+  "schema_version": 1,
+  "scope": "complete CPU FP32 reference for the pinned standard quality recipe; not accelerator qualification",
+  "recipe_revision": "ca6b283ff5df63d9512b83f405844240ff27846e",
+  "dataset_manifest_sha256": "2bf37453cf0df82116137159938934d404b813f8be0e4a6c1ec09fe6229ca2a9",
+  "prepared_cases_sha256": "4cccca3d98b3a0116ea2438133e755fd6d324a9097edb9517be6603191baa025",
+  "reference_sha256": "b34e70f103707a465a123b3378c90f7b7b0ffb04d64e45e39f6e18555ed5b4f8",
+  "checkpoint_revision": "55cf4c4ebb4ebe31b2550e8bdf3bd21b99753851",
+  "checkpoint_sha256": "891102d372688fc2a094dac56a384bc537b87c63f21f9f3dac0be2b7cbc8d86c",
+  "checked_persistent_tensors": 206,
+  "tensor_hashes_verified": 105560,
+  "answer_hashes_verified": 15080,
+  "captured_cases": 15080,
+  "runtime": {
+    "device": "cpu",
+    "weight_dtype": "torch.float32",
+    "autocast": false,
+    "deterministic_algorithms": true,
+    "threads": 1,
+    "versions": {
+      "torch": "2.11.0+cpu",
+      "transformers": "5.17.0",
+      "numpy": "2.4.6",
+      "safetensors": "0.8.0"
+    }
+  },
+  "datasets": {
+    "ag_news": {
+      "rows": 7600,
+      "type": "choice",
+      "accuracy": 0.9231578947368421,
+      "brier": 0.12172702561973685,
+      "nll": 0.23560263599453346,
+      "ece_15": 0.010213605263157882,
+      "score_mae": null
+    },
+    "boolq": {
+      "rows": 3270,
+      "type": "noul",
+      "accuracy": 0.8327217125382264,
+      "brier": 0.2553136974923547,
+      "nll": 0.4312882537480144,
+      "ece_15": 0.06672103975535171,
+      "score_mae": null
+    },
+    "emotion": {
+      "rows": 2000,
+      "type": "choice",
+      "accuracy": 0.5925,
+      "brier": 0.697016934075,
+      "nll": 2.2294079214506315,
+      "ece_15": 0.3075941,
+      "score_mae": null
+    },
+    "sst5": {
+      "rows": 2210,
+      "type": "score",
+      "accuracy": null,
+      "brier": 0.8040295402262444,
+      "nll": 1.6269843407554505,
+      "ece_15": null,
+      "score_mae": 0.8378600452488688
+    }
+  },
+  "input_shape_coverage": {
+    "ag_news": {
+      "cases": 7600,
+      "at_limit": 0,
+      "profiles": {
+        "128": 6541,
+        "64": 883,
+        "256": 175,
+        "512": 1
+      },
+      "forward_calls": {
+        "1": 7600
+      },
+      "min_tokens": 45,
+      "max_tokens": 277,
+      "mean_tokens": 81.13368421052631,
+      "at_limit_interpretation": "Length equals 512; this alone does not prove original text was truncated."
+    },
+    "emotion": {
+      "cases": 2000,
+      "at_limit": 0,
+      "profiles": {
+        "64": 1659,
+        "128": 341
+      },
+      "forward_calls": {
+        "1": 2000
+      },
+      "min_tokens": 36,
+      "max_tokens": 96,
+      "mean_tokens": 53.2045,
+      "at_limit_interpretation": "Length equals 512; this alone does not prove original text was truncated."
+    },
+    "sst5": {
+      "cases": 2210,
+      "at_limit": 0,
+      "profiles": {
+        "128": 1391,
+        "64": 819
+      },
+      "forward_calls": {
+        "1": 2210
+      },
+      "min_tokens": 48,
+      "max_tokens": 115,
+      "mean_tokens": 69.31945701357466,
+      "at_limit_interpretation": "Length equals 512; this alone does not prove original text was truncated."
+    },
+    "boolq": {
+      "cases": 3270,
+      "at_limit": 13,
+      "profiles": {
+        "256": 2159,
+        "512": 364,
+        "128": 747
+      },
+      "forward_calls": {
+        "1": 3270
+      },
+      "min_tokens": 67,
+      "max_tokens": 512,
+      "mean_tokens": 178.217125382263,
+      "at_limit_interpretation": "Length equals 512; this alone does not prove original text was truncated."
+    }
+  },
+  "physical_acceptance": false,
+  "quality_qualification": false
+}
