@@ -89,6 +89,17 @@ label Laya's auxiliary action head. Retain action-logit/probability checks and
 add non-saturated action-boundary examples before claiming action qualification.
 No new temperature fitting or checkpoint changes are allowed in this comparison.
 
+The [pinned upstream limitations](https://github.com/NandhaKishorM/laya/blob/970dc8c5f63d7b886a68409493f37d569424f933/README.md#known-limitations)
+already identify near-universal saturation of `action.act_probability` and poor
+correctness discrimination. Treat that as a checkpoint limitation to investigate,
+not evidence that an accelerator port introduced the saturation. Preserve native
+outputs and raw action logits in the parity comparison. Matching values near 1.0
+establishes neither useful action gating nor accuracy near a decision boundary.
+Synthetic decoder boundary tests can verify arithmetic but cannot substitute for
+checkpoint-level examples. If representative non-saturated examples cannot be
+established, report action qualification as unproven; do not silently recalibrate
+the head, substitute confidence, or relax the release gate.
+
 The paired scorer now reports 95% percentile intervals from 2,000 paired-row
 resamples (NumPy default RNG, seed 20260928), sorted by case identity so capture
 order cannot change the result. It resamples candidate and baseline together
