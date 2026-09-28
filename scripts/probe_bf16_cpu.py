@@ -11,36 +11,8 @@ BASELINE_SHA = "d1cb5aaaebdc21b5b8c6db1287811fb098659370978e9d1f50e593b329acb085
 INPUTS = ("input_ids", "attention_mask", "marker_pos", "marker_mask", "qtype")
 
 
-def buffer_inventory(model):
-    import torch
-    result = {}
-    for name, value in model.named_buffers():
-        if value.is_floating_point() and value.dtype != torch.float32:
-            raise ValueError(f"Expected FP32 buffer: {name}")
-        array = value.detach().cpu().contiguous().numpy()
-        result[name] = {"dtype": str(value.dtype), "shape": list(value.shape),
-                        "sha256": hashlib.sha256(memoryview(array).cast("B")).hexdigest()}
-    return result
-
-
-def apply_candidate_policy(model):
-    import torch
-    before = buffer_inventory(model)
-    parameters = {}
-    for name, parameter in model.named_parameters():
-        if parameter.device.type != "cpu" or parameter.dtype != torch.float32:
-            raise ValueError(f"Policy requires verified CPU FP32 parameters: {name}")
-        if name.startswith("act_head."):
-            target = torch.float32
-        elif name.startswith(("encoder.", "head.", "type_emb.", "scorer.")):
-            target = torch.bfloat16
-        else:
-            raise ValueError(f"Unknown parameter outside audited policy: {name}")
-        parameter.data = parameter.detach().to(dtype=target)
-        parameters[name] = {"dtype": str(parameter.dtype), "shape": list(parameter.shape)}
-    if buffer_inventory(model) != before:
-        raise ValueError("Precision conversion changed a buffer")
-    return {"parameters": parameters, "buffers": before}
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+from laya_tt.precision import apply_candidate_policy, buffer_inventory
 
 
 def tensor_metadata(value):
@@ -132,7 +104,8 @@ def main(argv=None):
         report.update(manifest_sha256=sha256_file(root / "configs/checkpoint-lock.json"),
                       source_commit=manifest["upstream"]["commit"],
                       checkpoint_revision=manifest["checkpoint"]["revision"],
-                      script_sha256=sha256_file(__file__))
+                      script_sha256=sha256_file(__file__),
+                      precision_helper_sha256=sha256_file(root / "src/laya_tt/precision.py"))
         sys.path.insert(0, str(source))
         import numpy as np
         import torch
