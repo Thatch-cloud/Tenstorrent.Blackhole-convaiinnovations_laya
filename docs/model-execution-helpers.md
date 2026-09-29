@@ -7,6 +7,16 @@ initialize an accelerator:
 - `laya_tt.precision.apply_candidate_policy(model)` applies the existing mixed
   BF16/FP32 policy to a verified CPU FP32 model. The action head and buffers stay
   FP32. Check loaded-state integrity after conversion as the BF16 probe does.
+- `laya_tt.precision.apply_output_projection_policy(model)` starts from verified
+  CPU FP32 weights and uses BF16 only for encoder `attn.Wo` and `mlp.Wo` linear
+  parameters, inputs and outputs. Other weights, normalization, attention,
+  MLP input projections and heads remain FP32; FP32 residual additions promote
+  the BF16 projection outputs. It validates parameter groups before mutation
+  and rejects shared parameters across the precision boundary or an existing
+  custom projection forward. Copy the prepared model for compilation; loading
+  its state dictionary alone does not install the required input casts.
+  This is a separate experimental mixed policy, not an all-BF16 encoder or a
+  claim of release quality, compiler support or physical hardware parity.
 - `laya_tt.shape_profiles.profile_rows(inputs, pad_token_id)` prepares single-row
   32/64/128/256/512-token profiles with 64 marker slots. Inputs are CPU tensors in
   `(input_ids, attention_mask, marker_pos, marker_mask, qtype)` order. It preserves
