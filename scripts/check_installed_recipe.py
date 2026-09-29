@@ -12,5 +12,6 @@ assert callable(cpu_backend.load_cpu_backend)
 assert callable(integrity.verify_loaded_state)
 assert len(reference.UPSTREAM_COMMIT) == 40
 assert callable(precision.apply_candidate_policy)
+assert callable(precision.apply_output_projection_policy)
 assert callable(shape_profiles.profile_rows)
 assert callable(profiled_forward.profiled_forward)
